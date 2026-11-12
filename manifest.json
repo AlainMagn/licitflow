@@ -1,0 +1,19 @@
+{
+  "name": "LicitFlow 14.133 — Gestão Paramétrica & Prazos SEI-PNCP",
+  "short_name": "LicitFlow",
+  "start_url": "/licitflow/",
+  "scope": "/licitflow/",
+  "id": "/licitflow/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#4f46e5",
+  "description": "Painel 360° para Coordenação de Licitações. Integra a fase preparatória do SEI! Bahia com a fase externa do PNCP/Licitações-e2, mapeando pregoeiros, prazos preclusivos e certidões.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

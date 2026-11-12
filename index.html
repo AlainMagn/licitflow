@@ -1,1647 +1,525 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LicitFlow 14.133 — Gestão Paramétrica SEI-PNCP</title>
-
-  <!-- PWA & Meta Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
+  <title>LicitFlow — Monitor SEI! Bahia</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Monitor Operacional do SEI! Bahia: processos lidos, atribuição na bandeja e peças inseridas via PluginNato.">
+  <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
 
-  <!-- Tailwind CSS via CDN -->
+  <!-- Tailwind CSS & Inter Font -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
           colors: {
             brand: {
               50: '#eef2ff',
-              100: '#e0e7ff',
               500: '#6366f1',
               600: '#4f46e5',
               700: '#4338ca',
-              900: '#312e81',
-              950: '#0f172a'
+              900: '#312e81'
             }
           }
         }
       }
-    };
+    }
   </script>
-
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .font-mono-num {
-      font-family: 'JetBrains Mono', monospace;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
+      background: #0f172a;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(99, 102, 241, 0.3);
-      border-radius: 4px;
+      background: #334155;
+      border-radius: 3px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(99, 102, 241, 0.6);
-    }
-    @keyframes pulse-subtle {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.65; transform: scale(0.97); }
-    }
-    .animate-pulse-subtle {
-      animation: pulse-subtle 2.5s infinite ease-in-out;
+      background: #475569;
     }
   </style>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js');
-      });
-    }
-  </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- BARRA SUPERIOR DE STATUS E NAVEGAÇÃO -->
-  <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- CABEÇALHO PRINCIPAL -->
+  <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md px-4 sm:px-6 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
       
-      <!-- Marca & Unidade Gestora -->
+      <!-- Marca & Identificação -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-400 p-0.5 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
-          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M9 12l2 2 4-4"/>
-          </svg>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-bold text-lg">
+          ⚡
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
-              LicitFlow <span class="text-xs font-semibold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">14.133</span>
-            </h1>
-            <span class="text-xs text-slate-400 hidden sm:inline">|</span>
-            <span class="text-xs font-medium text-slate-400 hidden sm:inline">CBMBA • Coordenação de Licitações (CL)</span>
+            <h1 class="text-lg font-bold tracking-tight text-white">LicitFlow</h1>
+            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">SEI! Bahia</span>
           </div>
-          <p class="text-[11px] text-slate-500">Gestão Paramétrica SEI! Bahia ➔ PNCP</p>
+          <p class="text-xs text-slate-400">Processos Lidos • Atribuição na Bandeja • Peças Inseridas</p>
         </div>
       </div>
 
-      <!-- Indicador PluginNato e Ações Rápidas -->
-      <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Indicador PluginNato -->
-        <div id="pluginNatoStatus" onclick="pedirSincronizacaoExtensao()" class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium cursor-pointer transition hover:bg-emerald-500/20" title="Clique para buscar processos recentes capturados pelo PluginNato">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="hidden md:inline">PluginNato Conectado</span>
-          <span class="md:hidden">Ao Vivo</span>
+      <!-- Status do PluginNato e Ações -->
+      <div class="flex items-center flex-wrap gap-2.5">
+        
+        <!-- Badge de Conexão com PluginNato -->
+        <div id="pluginStatusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span id="pluginStatusText">Aguardando PluginNato</span>
         </div>
 
-        <!-- Botão Baixar Extensão PluginNato -->
-        <a href="pluginnato-extension.zip" download="pluginnato-extension.zip" class="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="Baixar extensão PluginNato para Chrome / Edge">
-          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          <span class="hidden lg:inline">Baixar PluginNato</span>
-        </a>
-
-        <!-- Botão Importar SEI -->
-        <button onclick="abrirModalImportacao()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <span class="hidden sm:inline">Importar do SEI</span>
-          <span class="sm:hidden">Importar</span>
+        <!-- Botão Atualizar Dados do Plugin -->
+        <button onclick="solicitarSincronizacao()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm shadow-indigo-600/30" title="Solicitar dados mais recentes ao PluginNato">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Sincronizar</span>
         </button>
 
-        <!-- Botão Novo Processo -->
-        <button onclick="abrirModalNovo()" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          <span class="hidden sm:inline">Cadastrar</span>
+        <!-- Botão Baixar Extensão -->
+        <a href="pluginnato-extension.zip" download="pluginnato-extension.zip" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="Baixar extensão PluginNato (v1.0.6)">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span class="hidden sm:inline">Baixar PluginNato</span>
+        </a>
+
+        <!-- Botão Limpar Painel -->
+        <button onclick="limparPainel()" class="px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" title="Limpar histórico de processos salvos no navegador">
+          Limpar
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+  <!-- CORPO PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
 
-    <!-- BANNER DE NOTIFICAÇÃO DE SINCRONIZAÇÃO (DINÂMICO) -->
-    <div id="toastSync" class="hidden bg-gradient-to-r from-indigo-900/60 to-emerald-900/50 border border-emerald-500/30 rounded-xl p-3 flex items-center justify-between text-xs transition duration-300">
-      <div class="flex items-center gap-2.5">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-        <span id="toastSyncMsg" class="font-medium text-emerald-200">Processo atualizado via PluginNato com sucesso!</span>
+    <!-- BARRA DE RESUMO & FILTRO RÁPIDO -->
+    <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      
+      <!-- Contadores Executivos -->
+      <div class="flex items-center gap-6">
+        <div>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Processos Lidos</p>
+          <p class="text-2xl font-extrabold text-white font-mono" id="contadorTotalProcessos">0</p>
+        </div>
+        <div class="h-8 w-px bg-slate-800"></div>
+        <div>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Processos Atribuídos</p>
+          <p class="text-2xl font-extrabold text-sky-400 font-mono" id="contadorProcessosAtribuidos">0</p>
+        </div>
+        <div class="h-8 w-px bg-slate-800"></div>
+        <div>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total de Peças Inseridas</p>
+          <p class="text-2xl font-extrabold text-emerald-400 font-mono" id="contadorTotalPecas">0</p>
+        </div>
       </div>
-      <button onclick="fecharToast()" class="text-slate-400 hover:text-white">✕</button>
+
+      <!-- Campo de Busca -->
+      <div class="relative flex-1 max-w-md">
+        <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input 
+          type="text" 
+          id="campoBusca" 
+          oninput="filtrarProcessos()" 
+          placeholder="Buscar por nº de processo, servidor ou peça..." 
+          class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+        >
+      </div>
+
     </div>
 
-    <!-- CARDS DE MÉTRICAS (KPIs EXECUTIVOS) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Card 1: Total -->
-      <div class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between text-slate-400">
-          <span class="text-xs font-medium uppercase tracking-wider">Processos Ativos</span>
-          <span class="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          </span>
-        </div>
-        <div class="mt-3">
-          <span id="kpiTotalProcessos" class="text-2xl font-extrabold text-white font-mono-num">4</span>
-          <p class="text-[11px] text-slate-500 mt-0.5">Est. Total: <span id="kpiValorTotal" class="text-slate-300 font-semibold font-mono-num">R$ 4.850.000,00</span></p>
-        </div>
-      </div>
-
-      <!-- Card 2: Fase Preparatória -->
-      <div class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between text-slate-400">
-          <span class="text-xs font-medium uppercase tracking-wider text-amber-400">Fase Preparatória (SEI)</span>
-          <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </span>
-        </div>
-        <div class="mt-3">
-          <span id="kpiPreparatoria" class="text-2xl font-extrabold text-amber-300 font-mono-num">2</span>
-          <p class="text-[11px] text-slate-500 mt-0.5">ETP, Pesquisa de Preço & TR</p>
-        </div>
-      </div>
-
-      <!-- Card 3: Fase Externa / PNCP -->
-      <div class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between text-slate-400">
-          <span class="text-xs font-medium uppercase tracking-wider text-sky-400">Publicado no PNCP</span>
-          <span class="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-          </span>
-        </div>
-        <div class="mt-3">
-          <span id="kpiPublicados" class="text-2xl font-extrabold text-sky-300 font-mono-num">2</span>
-          <p class="text-[11px] text-slate-500 mt-0.5">Em Disputa no Licitações-e2</p>
-        </div>
-      </div>
-
-      <!-- Card 4: Prazos Críticos -->
-      <div class="bg-slate-900/80 border border-rose-900/40 rounded-2xl p-4 shadow-sm flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-900 to-rose-950/20">
-        <div class="flex items-center justify-between text-slate-400">
-          <span class="text-xs font-medium uppercase tracking-wider text-rose-400">Prazos em Alerta</span>
-          <span class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </span>
-        </div>
-        <div class="mt-3">
-          <span id="kpiAlertas" class="text-2xl font-extrabold text-rose-400 font-mono-num">1</span>
-          <p class="text-[11px] text-rose-300/80 mt-0.5">Impugnação em &lt; 3 dias úteis!</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABAS PRINCIPAIS DE NAVEGAÇÃO -->
-    <div class="flex items-center gap-1 border-b border-slate-800">
-      <button onclick="mudarAba('funil')" id="tabBtn-funil" class="px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/5 transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        Funil 360° (SEI ➔ PNCP)
-      </button>
-
-      <button onclick="mudarAba('agentes')" id="tabBtn-agentes" class="px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        Agentes & Pregoeiros
-      </button>
-
-      <button onclick="mudarAba('prazos')" id="tabBtn-prazos" class="px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        Calculadora 14.133
-      </button>
-
-      <button onclick="mudarAba('despachos')" id="tabBtn-despachos" class="px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
-        Certidões para o SEI
-      </button>
-    </div>
-
-    <!-- ABA 1: FUNIL 360° (KANBAN DINÂMICO) -->
-    <div id="aba-funil" class="space-y-4">
-      <!-- Banner Dinâmico de Dados Reais vs Demonstração -->
-      <div id="bannerStatusDados" class="rounded-xl p-3 text-xs border flex items-center justify-between transition"></div>
-
-      <div class="flex items-center justify-between text-xs text-slate-400">
-        <span>Arraste ou visualize a progressão dos processos licitatórios do CBMBA</span>
-        <div class="flex items-center gap-2">
-          <input type="text" id="filtroTexto" oninput="filtrarProcessos()" placeholder="Filtrar por objeto, nº SEI ou agente..." class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-64">
-        </div>
-      </div>
-
-      <!-- Colunas do Funil -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-        
-        <!-- Coluna 1: Formalização & ETP -->
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex flex-col gap-3 min-h-[420px]">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-              <h2 class="text-xs font-bold uppercase text-slate-200 tracking-wider">1. DFD, ETP & Riscos</h2>
-            </div>
-            <span id="badgeCol-1" class="text-[11px] font-mono-num px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">1</span>
-          </div>
-          <div id="coluna-1" class="flex flex-col gap-3 custom-scrollbar">
-            <!-- Injetado via JS -->
-          </div>
-        </div>
-
-        <!-- Coluna 2: Termo de Referência & Pesquisa -->
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex flex-col gap-3 min-h-[420px]">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
-              <h2 class="text-xs font-bold uppercase text-slate-200 tracking-wider">2. Pesquisa de Preços & TR</h2>
-            </div>
-            <span id="badgeCol-2" class="text-[11px] font-mono-num px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">1</span>
-          </div>
-          <div id="coluna-2" class="flex flex-col gap-3 custom-scrollbar">
-            <!-- Injetado via JS -->
-          </div>
-        </div>
-
-        <!-- Coluna 3: Análise Jurídica / PGE -->
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex flex-col gap-3 min-h-[420px]">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-              <h2 class="text-xs font-bold uppercase text-slate-200 tracking-wider">3. Análise Jurídica (PGE)</h2>
-            </div>
-            <span id="badgeCol-3" class="text-[11px] font-mono-num px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">0</span>
-          </div>
-          <div id="coluna-3" class="flex flex-col gap-3 custom-scrollbar">
-            <!-- Injetado via JS -->
-          </div>
-        </div>
-
-        <!-- Coluna 4: Publicado no PNCP / Disputa -->
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-3 flex flex-col gap-3 min-h-[420px]">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <h2 class="text-xs font-bold uppercase text-slate-200 tracking-wider">4. Publicado (PNCP / BB)</h2>
-            </div>
-            <span id="badgeCol-4" class="text-[11px] font-mono-num px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">2</span>
-          </div>
-          <div id="coluna-4" class="flex flex-col gap-3 custom-scrollbar">
-            <!-- Injetado via JS -->
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ABA 2: PAINEL DE AGENTES & PREGOEIROS -->
-    <div id="aba-agentes" class="hidden space-y-6">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider mb-1">Carga de Trabalho da Seção Militar (CBMBA/CL)</h2>
-        <p class="text-xs text-slate-400 mb-4">Monitoramento contínuo de designações, pregoeiros e membros de equipe de apoio extraídos automaticamente do SEI! Bahia.</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="cardsAgentes">
-          <!-- Injetado via JS -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 3: CALCULADORA DE PRAZOS DA LEI 14.133 -->
-    <div id="aba-prazos" class="hidden space-y-6">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-          <div>
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Calculadora de Prazos Preclusivos (Lei nº 14.133/2021)</h2>
-            <p class="text-xs text-slate-400">Contagem rigorosa em dias úteis com exclusão do dia de início e inclusão do vencimento (Art. 183 c/c Art. 164).</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs text-slate-400">Processo Modelo:</label>
-            <select id="selCalcProcesso" onchange="carregarProcessoNaCalculadora()" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200">
-              <!-- Injetado via JS -->
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <!-- Inputs de Cálculo -->
-          <div class="space-y-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Modalidade da Licitação</label>
-              <select id="calcModalidade" onchange="recalcularPrazos()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100">
-                <option value="pregao_bens_comuns">Pregão Eletrônico — Bens / Serviços Comuns (8 dias úteis)</option>
-                <option value="pregao_servicos_especiais">Pregão Eletrônico — Serviços Especiais (10 dias úteis)</option>
-                <option value="dispensa_eletronica">Dispensa Eletrônica com Disputa (3 dias úteis)</option>
-                <option value="concorrencia_obras">Concorrência — Obras e Serviços de Engenharia (25 dias úteis)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Data da Publicação do Edital (PNCP / DOE)</label>
-              <input type="date" id="calcDataPublicacao" onchange="recalcularPrazos()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono-num">
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Data de Abertura da Sessão (Licitações-e2)</label>
-              <input type="datetime-local" id="calcDataAbertura" onchange="recalcularPrazos()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 font-mono-num">
-            </div>
-
-            <div class="pt-2">
-              <button onclick="copiarCertidaoGerada()" class="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
-                Copiar Certidão de Prazos p/ SEI
-              </button>
-            </div>
-          </div>
-
-          <!-- Linha do Tempo e Resultados -->
-          <div class="md:col-span-2 space-y-3" id="timelineResults">
-            <!-- Timeline renderizada via JS -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 4: GERADOR DE DESPACHOS & CERTIDÕES PARA O SEI -->
-    <div id="aba-despachos" class="hidden space-y-6">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-          <div>
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Gerador de Minutas e Certidões para o SEI! Bahia</h2>
-            <p class="text-xs text-slate-400">Gera documentos formatados nos padrões tipográficos do SEI, prontos para colar e assinar com 1 clique.</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <select id="selTemplateSEI" onchange="gerarMinutaSEI()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200">
-              <option value="certidao_prazos">Certidão de Prazos Preclusivos (Art. 164)</option>
-              <option value="despacho_conformidade">Despacho de Conformidade da Fase Preparatória</option>
-              <option value="remessa_pregoeiro">Despacho de Remessa ao Pregoeiro Oficial</option>
-            </select>
-            <button onclick="copiarEditorSEI()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-              Copiar p/ SEI
-            </button>
-          </div>
-        </div>
-
-        <!-- Visualizador Estilo Folha do SEI -->
-        <div class="mt-6 bg-white text-slate-900 rounded-xl p-8 font-serif shadow-2xl border border-slate-700 max-h-[500px] overflow-y-auto custom-scrollbar" id="papelSEI">
-          <!-- Conteúdo gerado via JS -->
-        </div>
-      </div>
+    <!-- ÁREA DE PROCESSOS (CONTAINER DINÂMICO) -->
+    <div id="containerProcessos" class="space-y-4">
+      <!-- Injetado dinamicamente via JavaScript -->
     </div>
 
   </main>
 
-  <!-- MODAL DE IMPORTAÇÃO (PLUGINNATO / CLIPBOARD) -->
-  <div id="modalImport" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          </div>
-          <h2 class="text-sm font-bold text-white">Importar Dados do SEI! Bahia</h2>
-        </div>
-        <button onclick="fecharModalImportacao()" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-
-      <p class="text-xs text-slate-300">
-        Você pode colar o pacote JSON gerado pelo <strong>PluginNato</strong> ou clicar no botão abaixo para ler da sua Área de Transferência:
-      </p>
-
-      <button onclick="colarDaAreaDeTransferencia()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Colar Automaticamente da Área de Transferência
-      </button>
-
-      <div>
-        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Ou cole o JSON manualmente aqui:</label>
-        <textarea id="txtManualJson" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono-num focus:outline-none focus:border-indigo-500" placeholder='{ "numeroProcesso": "089.4120.2026...", ... }'></textarea>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 pt-2">
-        <button onclick="fecharModalImportacao()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition">Cancelar</button>
-        <button onclick="processarJsonManual()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition">Processar e Salvar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE CADASTRO NOVO PROCESSO -->
-  <div id="modalNovo" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h2 class="text-sm font-bold text-white">Cadastrar Novo Processo Licitatório</h2>
-        <button onclick="fecharModalNovo()" class="text-slate-400 hover:text-white">✕</button>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="col-span-2">
-          <label class="block text-slate-300 mb-1 font-semibold">Número do Processo SEI</label>
-          <input type="text" id="novoNumero" placeholder="089.0012.2026.0001234-56" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono-num">
-        </div>
-        <div class="col-span-2">
-          <label class="block text-slate-300 mb-1 font-semibold">Objeto da Licitação</label>
-          <input type="text" id="novoObjeto" placeholder="Aquisição de viaturas operacionais..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100">
-        </div>
-        <div>
-          <label class="block text-slate-300 mb-1 font-semibold">Modalidade</label>
-          <select id="novoModalidade" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100">
-            <option value="Pregão Eletrônico">Pregão Eletrônico</option>
-            <option value="Dispensa Eletrônica">Dispensa Eletrônica</option>
-            <option value="Concorrência">Concorrência</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-slate-300 mb-1 font-semibold">Pregoeiro / Responsável</label>
-          <input type="text" id="novoAgente" placeholder="CAP PM LEONARDO" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100">
-        </div>
-        <div>
-          <label class="block text-slate-300 mb-1 font-semibold">Valor Estimado (R$)</label>
-          <input type="number" id="novoValor" placeholder="450000" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono-num">
-        </div>
-        <div>
-          <label class="block text-slate-300 mb-1 font-semibold">Estágio Inicial</label>
-          <select id="novoEstagio" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100">
-            <option value="1">1. DFD / ETP / Riscos</option>
-            <option value="2">2. Pesquisa de Preço & TR</option>
-            <option value="3">3. Análise Jurídica PGE</option>
-            <option value="4">4. Publicado no PNCP</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-        <button onclick="fecharModalNovo()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancelar</button>
-        <button onclick="salvarNovoProcesso()" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">Salvar no Painel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE AUDITORIA 360° DO PROCESSO (LEI 14.133 / SEI! BAHIA) -->
-  <div id="modalDetalhes" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-      
-      <!-- Cabeçalho do Modal -->
-      <div class="p-5 border-b border-slate-800 flex items-start justify-between bg-slate-950/70">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" id="detModalidade">Pregão Eletrônico</span>
-            <span class="font-mono-num text-xs font-bold text-slate-300" id="detNumeroProcesso">089.0000.2026...</span>
-            <button onclick="copiarTexto(document.getElementById('detNumeroProcesso').innerText)" class="text-slate-400 hover:text-white" title="Copiar número do processo">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            </button>
-          </div>
-          <h2 class="text-sm font-bold text-white mt-1.5 line-clamp-1" id="detEditalTitulo">Processo SEI</h2>
-        </div>
-        <button onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg leading-none">✕</button>
-      </div>
-
-      <!-- Corpo com rolagem -->
-      <div class="p-5 overflow-y-auto custom-scrollbar space-y-4 text-xs flex-1">
-        
-        <!-- Objeto da Licitação (Read-Only) -->
-        <div>
-          <label class="block font-semibold text-slate-400 mb-1">Objeto da Contratação (Extraído do SEI! Bahia)</label>
-          <div id="detObjetoTexto" class="bg-slate-950 border border-slate-800/90 rounded-xl p-3 text-xs text-slate-200 leading-relaxed font-medium"></div>
-        </div>
-
-        <!-- Seção de Pregoeiro Oficial -->
-        <div class="bg-slate-950/90 border border-amber-500/30 rounded-xl p-3.5 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
-              🎯
-            </div>
-            <div>
-              <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Pregoeiro / Agente de Contratação (SEI! Bahia)</p>
-              <h3 id="detPregoeiroExibicao" class="text-xs font-extrabold text-amber-200">Renato Carvalho</h3>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[10px] font-semibold border border-amber-500/20">
-            Reconhecido Automaticamente
-          </span>
-        </div>
-
-        <!-- Dados Financeiros e Estágio -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-            <span class="text-[10px] text-slate-400 font-medium">Valor Estimado Global</span>
-            <p id="detValorEstimadoTexto" class="text-sm font-extrabold font-mono-num text-emerald-400 mt-0.5">R$ 0,00</p>
-          </div>
-          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-            <span class="text-[10px] text-slate-400 font-medium">Estágio da Lei 14.133</span>
-            <p id="detEstagioTexto" class="text-xs font-bold text-indigo-300 mt-0.5">Fase Preparatória</p>
-          </div>
-        </div>
-
-        <!-- Matriz de Artefatos Críticos da Lei 14.133 -->
-        <div>
-          <label class="block font-semibold text-slate-300 mb-2">Checklist Estatutário da Lei 14.133/21</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="gridChecklistDetalhes">
-            <!-- Injetado dinamicamente -->
-          </div>
-        </div>
-
-        <!-- Acervo Completo de Documentos da Árvore SEI -->
-        <div class="border border-slate-800 rounded-xl overflow-hidden">
-          <div class="bg-slate-950/80 p-3 flex items-center justify-between border-b border-slate-800">
-            <span class="font-bold text-slate-200 flex items-center gap-1.5">
-              <span>📎</span> Acervo de Documentos na Árvore SEI (<span id="detTotalDocsContador">0</span>)
-            </span>
-            <input type="text" id="filtroDocsSei" oninput="filtrarDocsAcervo(this.value)" placeholder="Buscar no acervo..." class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200 w-36 sm:w-48">
-          </div>
-          <div class="max-h-48 overflow-y-auto custom-scrollbar p-2 divide-y divide-slate-800/60" id="listaAcervoSei">
-            <!-- Documentos injetados dinamicamente -->
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Rodapé com Ações -->
-      <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="irParaCalculadoraDoProcesso()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/30 transition flex items-center gap-1">
-            ⏱️ Prazos 14.133
-          </button>
-          <button type="button" onclick="irParaMinutaDoProcesso()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/30 transition flex items-center gap-1">
-            📋 Certidão SEI
-          </button>
-        </div>
-        <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition">Fechar</button>
-      </div>
-
-    </div>
-  </div>
-
-    </div>
-  </div>
-
-  <!-- RODAPÉ EXECUTIVO -->
+  <!-- RODAPÉ -->
   <footer class="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-600">
-    <p>LicitFlow 14.133 • PWA Instalável e Autônomo • Desenvolvido para a Coordenação de Licitações (CBMBA)</p>
+    <p>LicitFlow • Monitor Operacional Integrado ao SEI! Bahia via PluginNato (v1.0.6)</p>
   </footer>
 
-  <!-- SCRIPT PRINCIPAL DO LICITFLOW -->
+  <!-- TOAST DE NOTIFICAÇÃO -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 border border-indigo-500/40 text-slate-200 text-xs px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <span class="text-indigo-400">⚡</span>
+    <span id="toastMsg">Mensagem</span>
+  </div>
+
+  <!-- SCRIPT OPERACIONAL DO LICITFLOW -->
   <script>
-    // ESTADO GLOBAL DA APLICAÇÃO
-    const STORAGE_KEY = 'licitflow_processos_v1';
-
-    // DADOS INICIAIS (BASE REAL CBMBA)
-    const DADOS_EXEMPLO = [
-      {
-        id: 'sei-36318',
-        numeroProcesso: '089.9348.2026.0036318-23',
-        edital: 'PE 014/2026',
-        objeto: 'Aquisição e modernização de soluções operacionais e equipamentos para o Corpo de Bombeiros Militar da Bahia (CBMBA)',
-        modalidade: 'Pregão Eletrônico',
-        estagio: 2, // Pesquisa de Preço & TR
-        pregoeiro: 'Renato Carvalho',
-        agentePrincipal: 'Renato Carvalho',
-        equipeApoio: ['Comissão de Contratação CBMBA'],
-        valorEstimado: 1845200.00,
-        dataPublicacao: '',
-        dataAbertura: '',
-        pilaresStatus: {
-          dfd: true,
-          etp: true,
-          risco: true,
-          tr: true,
-          pesquisa: true,
-          portaria: true,
-          pge: false,
-          edital: false
-        },
-        artefatos: [
-          { nome: 'Portaria 14 (36318)', descricaoCompleta: 'Portaria nº 14/2026 - CBMBA/CL - Designação de Pregoeiro e Equipe de Apoio', categoria: 'Portaria de Designação', sigla: 'PORT', pilar: 'portaria', assinado: true, assinadoPor: 'Cel BM Comandante Geral', externo: false },
-          { nome: 'DFD 01 (36310)', descricaoCompleta: 'Documento de Formalização da Demanda Operacional CBMBA', categoria: 'DFD', sigla: 'DFD', pilar: 'dfd', assinado: true, assinadoPor: 'Maj BM Coord. de Operações', externo: false },
-          { nome: 'Estudo Técnico Preliminar 02 (36315)', descricaoCompleta: 'Estudo Técnico Preliminar de Viabilidade', categoria: 'ETP', sigla: 'ETP', pilar: 'etp', assinado: true, assinadoPor: 'Cap BM Engenharia', externo: false },
-          { nome: 'Matriz de Riscos 01 (36316)', descricaoCompleta: 'Mapa e Gerenciamento de Riscos Licitatórios', categoria: 'Matriz de Risco', sigla: 'RISCO', pilar: 'risco', assinado: true, assinadoPor: 'Cap BM Engenharia', externo: false },
-          { nome: 'Termo de Referência 05 (36320)', descricaoCompleta: 'Termo de Referência - Especificações Técnicas', categoria: 'Termo de Referência', sigla: 'TR', pilar: 'tr', assinado: true, assinadoPor: 'Ten Cel BM Renato Carvalho', externo: false },
-          { nome: 'Pesquisa Mercadológica 03 (36319)', descricaoCompleta: 'Pesquisa de Preços e Mapa Comparativo de Mercado', categoria: 'Pesquisa de Preços', sigla: 'PESQ', pilar: 'pesquisa', assinado: true, assinadoPor: 'Sgt BM Pesquisador', externo: false },
-          { nome: 'Despacho de Encaminhamento (36321)', descricaoCompleta: 'Despacho CBMBA/CL para a PGE', categoria: 'Despacho', sigla: 'DESP', pilar: null, assinado: true, assinadoPor: 'Ten Cel BM Renato Carvalho', externo: false }
-        ],
-        isExemplo: false,
-        pncpSync: false
-      }
-    ];
-
+    // ESTADO GLOBAL DA APLICAÇÃO (ZERO DADOS DE EXEMPLO)
+    const STORAGE_KEY = 'licitflow_processos_v106';
     let processos = [];
 
     // INICIALIZAÇÃO
     function init() {
+      // Carrega dados salvos exclusivamente capturados pela extensão
       const salvo = localStorage.getItem(STORAGE_KEY);
       if (salvo) {
         try {
           processos = JSON.parse(salvo);
         } catch (e) {
-          processos = DADOS_EXEMPLO;
+          processos = [];
         }
       } else {
-        processos = DADOS_EXEMPLO;
-        salvar();
+        processos = [];
       }
 
-      // Limpa dados de demonstração fictícios legados se existirem
-      processos = processos.filter(p => 
-        !p.numeroProcesso.includes('0001234') && 
-        !p.numeroProcesso.includes('0004567') && 
-        !p.numeroProcesso.includes('0007890') && 
-        !p.numeroProcesso.includes('0009901')
-      );
-      if (processos.length === 0) {
-        processos = [...DADOS_EXEMPLO];
-      }
-
-      // Garante que o processo 36318 esteja atribuído a Renato Carvalho
-      processos.forEach(p => {
-        if (p.numeroProcesso && p.numeroProcesso.includes('36318')) {
-          p.pregoeiro = 'Renato Carvalho';
-          p.agentePrincipal = 'Renato Carvalho';
-          p.isExemplo = false;
-        }
-        if (!p.pregoeiro && p.agentePrincipal) {
-          p.pregoeiro = p.agentePrincipal;
-        }
-      });
-      salvar();
-
-      verificarPayloadUrl();
-      configurarOuvinteMensagens();
-      renderizarTudo();
+      configurarOuvintesPonte();
+      renderizarProcessos();
     }
 
+    // SALVAMENTO NO LOCALSTORAGE
     function salvar() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(processos));
     }
 
-    // RENDERIZAÇÃO GERAL
-    function renderizarTudo() {
-      renderizarKPIs();
-      renderizarFunil();
-      renderizarAgentes();
-      popularSelectCalculadora();
-      recalcularPrazos();
-      gerarMinutaSEI();
-    }
-
-    // 1. RENDERIZAR KPIs
-    function renderizarKPIs() {
-      document.getElementById('kpiTotalProcessos').innerText = processos.length;
-      
-      const totalValor = processos.reduce((acc, p) => acc + (p.valorEstimado || 0), 0);
-      document.getElementById('kpiValorTotal').innerText = totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-      const prepCount = processos.filter(p => p.estagio >= 1 && p.estagio <= 3).length;
-      document.getElementById('kpiPreparatoria').innerText = prepCount;
-
-      const pubCount = processos.filter(p => p.estagio === 4).length;
-      document.getElementById('kpiPublicados').innerText = pubCount;
-
-      // Alertas de impugnação (< 3 dias úteis)
-      let alertas = 0;
-      processos.forEach(p => {
-        if (p.estagio === 4 && p.dataAbertura) {
-          const dias = calcularDiasUteisAte(new Date(p.dataAbertura));
-          if (dias >= 0 && dias <= 4) alertas++;
-        }
-      });
-      document.getElementById('kpiAlertas').innerText = alertas;
-    }
-
-    // 2. RENDERIZAR FUNIL KANBAN
-    function renderizarFunil() {
-      // Atualiza Banner de Status dos Dados
-      const banner = document.getElementById('bannerStatusDados');
-      if (banner) {
-        const temExemplo = processos.some(p => p.isExemplo);
-        const temReal = processos.some(p => !p.isExemplo);
-
-        if (temExemplo && !temReal) {
-          banner.className = "rounded-xl p-3 text-xs border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2";
-          banner.innerHTML = `
-            <div class="flex items-center gap-2 text-amber-200">
-              <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span><strong>Atenção:</strong> Estes 4 processos abaixo são fictícios de demonstração. Assim que você abrir um processo no <strong>SEI! Bahia</strong> com o <strong>PluginNato</strong>, seus dados reais entrarão aqui.</span>
-            </div>
-            <button onclick="limparDadosExemplo()" class="px-2.5 py-1 text-xs font-semibold rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 border border-amber-500/40 transition shrink-0">
-              🗑️ Limpar dados fictícios
-            </button>
-          `;
-        } else if (processos.length === 0) {
-          banner.className = "rounded-xl p-4 text-xs border border-indigo-500/30 bg-indigo-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3";
-          banner.innerHTML = `
-            <div class="flex items-center gap-3 text-indigo-200">
-              <span class="w-3 h-3 rounded-full bg-indigo-400 animate-pulse shrink-0"></span>
-              <div>
-                <p class="font-bold text-white text-xs">Aguardando dados reais do SEI! Bahia...</p>
-                <p class="text-slate-300 text-[11px] mt-0.5">O painel está limpo. Abra qualquer processo no seu <strong>SEI! Bahia</strong> (com o PluginNato ativo) ou clique em "Importar do SEI" para sincronizar.</p>
-              </div>
-            </div>
-            <button onclick="carregarDemonstracao()" class="px-2.5 py-1 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0">
-              🧪 Ver dados de exemplo
-            </button>
-          `;
-        } else {
-          banner.className = "rounded-xl p-3 text-xs border border-emerald-500/30 bg-emerald-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2";
-          banner.innerHTML = `
-            <div class="flex items-center gap-2 text-emerald-200">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
-              <span><strong>Processos Reais Conectados:</strong> Exibindo ${processos.filter(p => !p.isExemplo).length} processo(s) reais recebidos diretamente do seu SEI! Bahia.</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="pedirSincronizacaoExtensao()" class="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-100 border border-emerald-500/40 transition">
-                ↻ Forçar Atualização
-              </button>
-              <button onclick="limparTudo()" class="text-[11px] text-slate-400 hover:text-rose-400 underline ml-1">
-                Limpar Base
-              </button>
-            </div>
-          `;
-        }
-      }
-
-      for (let i = 1; i <= 4; i++) {
-        document.getElementById(`coluna-${i}`).innerHTML = '';
-      }
-
-      const contagem = { 1: 0, 2: 0, 3: 0, 4: 0 };
-      const termo = document.getElementById('filtroTexto').value.toLowerCase();
-
-      processos.forEach(p => {
-        const bateFiltro = !termo || 
-          p.numeroProcesso.toLowerCase().includes(termo) ||
-          p.objeto.toLowerCase().includes(termo) ||
-          (p.agentePrincipal && p.agentePrincipal.toLowerCase().includes(termo)) ||
-          (p.pregoeiro && p.pregoeiro.toLowerCase().includes(termo)) ||
-          (p.edital && p.edital.toLowerCase().includes(termo));
-
-        if (!bateFiltro) return;
-
-        const estagio = p.estagio || 1;
-        contagem[estagio] = (contagem[estagio] || 0) + 1;
-
-        // Análise dos 6 artefatos estatutários da Lei 14.133 (Checklist Executivo)
-        const artes = p.artefatos || [];
-        const temDFD = artes.some(a => a.pilar === 'dfd' || a.categoria === 'DFD');
-        const temETP = artes.some(a => a.pilar === 'etp' || a.categoria === 'ETP');
-        const temTR = artes.some(a => a.pilar === 'tr' || a.categoria === 'Termo de Referência' || a.categoria === 'Projeto Básico');
-        const temPesquisa = artes.some(a => a.pilar === 'pesquisa' || a.categoria === 'Pesquisa de Preços');
-        const temPGE = artes.some(a => a.pilar === 'pge' || a.categoria === 'Parecer Jurídico');
-        const temEdital = artes.some(a => a.pilar === 'edital' || a.categoria === 'Edital');
-
-        const card = document.createElement('div');
-        card.className = "bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 space-y-2.5 shadow-md hover:border-slate-700 transition cursor-pointer relative group";
-        card.onclick = () => abrirModalDetalhes(p.id);
-
-        // Alerta de prazo de abertura
-        let badgePrazo = '';
-        if (p.estagio === 4 && p.dataAbertura) {
-          const d = new Date(p.dataAbertura);
-          badgePrazo = `
-            <div class="flex items-center gap-1.5 text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span>Sessão: ${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          `;
-        }
-
-        const pregoeiroExibicao = p.pregoeiro || p.agentePrincipal || 'Não designado';
-
-        card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-indigo-400 font-mono-num">${p.edital || 'PROCESSO'}</span>
-            <span class="text-[10px] text-slate-400 font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${p.modalidade || 'Pregão'}</span>
-          </div>
-
-          <div class="text-xs font-semibold text-slate-200 line-clamp-2 leading-snug" title="${p.objeto}">
-            ${p.objeto}
-          </div>
-
-          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-900 font-mono-num">
-            <span class="text-slate-300 font-medium">${p.numeroProcesso}</span>
-            <span class="text-emerald-400 font-bold">${(p.valorEstimado && p.valorEstimado > 0) ? (p.valorEstimado).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Em Cotação'}</span>
-          </div>
-
-          <!-- Matriz Executiva dos 6 Pilares da Lei 14.133 -->
-          <div class="grid grid-cols-6 gap-1 pt-0.5">
-            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temDFD ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temDFD ? 'DFD Presente' : 'DFD Pendente'}">
-              ${temDFD ? '✓' : '○'} DFD
-            </span>
-            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temETP ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temETP ? 'ETP Presente' : 'ETP Pendente'}">
-              ${temETP ? '✓' : '○'} ETP
-            </span>
-            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temTR ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temTR ? 'TR / Projeto Básico Presente' : 'TR Pendente'}">
-              ${temTR ? '✓' : '○'} TR
-            </span>
-            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temPesquisa ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temPesquisa ? 'Pesquisa de Preços Anexada' : 'Pesquisa Pendente'}">
-              ${temPesquisa ? '✓' : '○'} Pesq
-            </span>
-            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temPGE ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temPGE ? 'Parecer PGE Emitido' : 'Parecer PGE Pendente'}">
-              ${temPGE ? '✓' : '○'} PGE
-            </span>
-            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temEdital ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temEdital ? 'Edital Publicado' : 'Edital Pendente'}">
-              ${temEdital ? '✓' : '○'} Edital
-            </span>
-          </div>
-
-          <div class="flex items-center justify-between text-[10px] text-slate-400 px-0.5">
-            <span class="flex items-center gap-1 text-slate-400">
-              <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-              ${artes.length} artefatos no SEI
-            </span>
-            <span class="text-[10px] text-indigo-400 group-hover:text-indigo-300 font-medium">Acervo ➔</span>
-          </div>
-
-          ${badgePrazo}
-
-          <!-- Responsável / Pregoeiro em Destaque -->
-          <div class="flex items-center justify-between pt-2 border-t border-slate-900 text-xs">
-            <div class="flex items-center gap-1.5" title="Pregoeiro / Agente de Contratação Designado">
-              <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-[10px]">
-                🎯
-              </span>
-              <div class="flex flex-col">
-                <span class="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Pregoeiro:</span>
-                <span class="text-[11px] font-bold text-slate-200 truncate max-w-[150px]">
-                  ${pregoeiroExibicao}
-                </span>
-              </div>
-            </div>
-            <button onclick="event.stopPropagation(); abrirModalDetalhes('${p.id}')" class="px-2.5 py-1 text-[10px] font-semibold rounded bg-slate-900 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-slate-800 transition">
-              Abrir 360° ➔
-            </button>
-          </div>
-        `;
-
-        const col = document.getElementById(`coluna-${estagio}`);
-        if (col) col.appendChild(card);
-      });
-
-      for (let i = 1; i <= 4; i++) {
-        document.getElementById(`badgeCol-${i}`).innerText = contagem[i] || 0;
-      }
-    }
-
-    // 3. RENDERIZAR AGENTES
-    function renderizarAgentes() {
-      const mapaAgentes = {};
-
-      processos.forEach(p => {
-        const ag = p.pregoeiro || p.agentePrincipal || 'Não Atribuído';
-        if (!mapaAgentes[ag]) {
-          mapaAgentes[ag] = { processos: [], valorTotal: 0, concluidos: 0, emDisputa: 0 };
-        }
-        mapaAgentes[ag].processos.push(p);
-        mapaAgentes[ag].valorTotal += (p.valorEstimado || 0);
-        if (p.estagio === 4) mapaAgentes[ag].emDisputa++;
-      });
-
-      const container = document.getElementById('cardsAgentes');
-      container.innerHTML = '';
-
-      Object.entries(mapaAgentes).forEach(([nome, info]) => {
-        const card = document.createElement('div');
-        card.className = "bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow";
-
-        card.innerHTML = `
-          <div>
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-700 to-indigo-500 flex items-center justify-center font-bold text-white text-xs shadow-md">
-                ${nome.substring(0, 3)}
-              </div>
-              <div>
-                <h3 class="text-xs font-bold text-white">${nome}</h3>
-                <p class="text-[11px] text-slate-400">Agente de Contratação / Pregoeiro</p>
-              </div>
-            </div>
-
-            <div class="space-y-1.5 text-xs text-slate-300 py-2 border-y border-slate-800/80">
-              <div class="flex justify-between">
-                <span class="text-slate-400">Processos Ativos:</span>
-                <span class="font-bold font-mono-num text-white">${info.processos.length}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Em Disputa (PNCP):</span>
-                <span class="font-bold font-mono-num text-sky-400">${info.emDisputa}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Montante Gerenciado:</span>
-                <span class="font-bold font-mono-num text-emerald-400">${info.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-2">
-            <button onclick="filtrarPorAgente('${nome}')" class="w-full py-1.5 text-xs font-semibold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-lg transition">
-              Ver Processos do Agente
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // 4. CALCULADORA DE PRAZOS (LEI 14.133/21)
-    function popularSelectCalculadora() {
-      const sel = document.getElementById('selCalcProcesso');
-      sel.innerHTML = '';
-      processos.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.innerText = `${p.edital || 'Processo'} — ${p.numeroProcesso}`;
-        sel.appendChild(opt);
-      });
-    }
-
-    function carregarProcessoNaCalculadora() {
-      const id = document.getElementById('selCalcProcesso').value;
-      const proc = processos.find(p => p.id === id);
-      if (!proc) return;
-
-      if (proc.dataPublicacao) {
-        document.getElementById('calcDataPublicacao').value = proc.dataPublicacao;
-      }
-      if (proc.dataAbertura) {
-        document.getElementById('calcDataAbertura').value = proc.dataAbertura;
-      }
-      recalcularPrazos();
-    }
-
-    // Cálculo exato de dias úteis (desconsidera sábados e domingos)
-    function adicionarDiasUteis(dataBase, diasUteis) {
-      const data = new Date(dataBase);
-      let adicionados = 0;
-      while (adicionados < diasUteis) {
-        data.setDate(data.getDate() + 1);
-        const diaSemana = data.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) { // 0 = Dom, 6 = Sáb
-          adicionados++;
-        }
-      }
-      return data;
-    }
-
-    function subtrairDiasUteis(dataBase, diasUteis) {
-      const data = new Date(dataBase);
-      let subtraidos = 0;
-      while (subtraidos < diasUteis) {
-        data.setDate(data.getDate() - 1);
-        const diaSemana = data.getDay();
-        if (diaSemana !== 0 && diaSemana !== 6) {
-          subtraidos++;
-        }
-      }
-      return data;
-    }
-
-    function calcularDiasUteisAte(dataAlvo) {
-      const hoje = new Date();
-      if (dataAlvo < hoje) return -1;
-      let dias = 0;
-      const temp = new Date(hoje);
-      while (temp < dataAlvo) {
-        temp.setDate(temp.getDate() + 1);
-        if (temp.getDay() !== 0 && temp.getDay() !== 6) dias++;
-      }
-      return dias;
-    }
-
-    function recalcularPrazos() {
-      const dtPubStr = document.getElementById('calcDataPublicacao').value || '2026-11-04';
-      const dtAberturaStr = document.getElementById('calcDataAbertura').value || '2026-11-20T10:00';
-
-      const dtPub = new Date(dtPubStr + 'T00:00:00');
-      const dtAbertura = new Date(dtAberturaStr);
-
-      // Art. 164: Impugnação e esclarecimento até 3 dias úteis antes da abertura
-      const limiteImpugnacao = subtrairDiasUteis(dtAbertura, 3);
-      limiteImpugnacao.setHours(23, 59, 0, 0);
-
-      // Resposta da administração: até o último dia útil antes da abertura
-      const limiteResposta = subtrairDiasUteis(dtAbertura, 1);
-      limiteResposta.setHours(18, 0, 0, 0);
-
-      // Prazos Recursais (Art. 165): 3 dias úteis após ata da sessão
-      const limiteRecursos = adicionarDiasUteis(dtAbertura, 3);
-
-      const container = document.getElementById('timelineResults');
-      container.innerHTML = `
-        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-4">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <span class="text-xs font-bold text-white uppercase tracking-wider">Cronograma Legal dos Marcos Preclusivos</span>
-            <span class="text-xs text-indigo-400 font-semibold">Lei nº 14.133/21</span>
-          </div>
-
-          <div class="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
-            
-            <!-- Marco 1: Publicação -->
-            <div class="relative">
-              <span class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-slate-700 border-2 border-slate-900"></span>
-              <div class="text-xs font-bold text-slate-300">1. Publicação Oficial no PNCP e Diário Oficial</div>
-              <p class="text-[11px] text-slate-400 mt-0.5 font-mono-num">${dtPub.toLocaleDateString('pt-BR')}</p>
-            </div>
-
-            <!-- Marco 2: Impugnações e Esclarecimentos (CRÍTICO) -->
-            <div class="relative">
-              <span class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-rose-500 border-2 border-slate-900 animate-pulse"></span>
-              <div class="text-xs font-bold text-rose-300">2. Prazo Limite para Pedidos de Esclarecimento e Impugnações (Art. 164)</div>
-              <p class="text-xs text-rose-200 mt-0.5 font-mono-num font-semibold">
-                Até ${limiteImpugnacao.toLocaleDateString('pt-BR')} às 23h59 (3 dias úteis anteriores à sessão)
-              </p>
-              <p class="text-[11px] text-slate-400">Qualquer cidadão ou licitante pode protocolar tempestivamente até este marco.</p>
-            </div>
-
-            <!-- Marco 3: Resposta da Administração -->
-            <div class="relative">
-              <span class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-slate-900"></span>
-              <div class="text-xs font-bold text-amber-300">3. Prazo para Resposta e Divulgação pela Administração</div>
-              <p class="text-xs text-amber-200 mt-0.5 font-mono-num">
-                Até ${limiteResposta.toLocaleDateString('pt-BR')} às 18h00 (anterior à abertura)
-              </p>
-            </div>
-
-            <!-- Marco 4: Abertura da Sessão -->
-            <div class="relative">
-              <span class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-sky-400 border-2 border-slate-900"></span>
-              <div class="text-xs font-bold text-sky-300">4. Abertura da Sessão Pública de Disputa no Licitações-e2</div>
-              <p class="text-xs text-sky-200 mt-0.5 font-mono-num font-bold">
-                ${dtAbertura.toLocaleDateString('pt-BR')} às ${dtAbertura.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-
-            <!-- Marco 5: Razões de Recurso -->
-            <div class="relative">
-              <span class="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-900"></span>
-              <div class="text-xs font-bold text-emerald-300">5. Envio das Razões de Recurso pelos Licitantes (Art. 165)</div>
-              <p class="text-[11px] text-emerald-200 mt-0.5 font-mono-num">
-                Até ${limiteRecursos.toLocaleDateString('pt-BR')} (3 dias úteis contados da intimação/ata)
-              </p>
-            </div>
-
-          </div>
-        </div>
-      `;
-    }
-
-    // 5. GERADOR DE MINUTAS SEI
-    function gerarMinutaSEI() {
-      const template = document.getElementById('selTemplateSEI').value;
-      const papel = document.getElementById('papelSEI');
-      const proc = processos[0]; // Processo base
-
-      if (template === 'certidao_prazos') {
-        papel.innerHTML = `
-          <div style="text-align: center; margin-bottom: 25px;">
-            <p style="font-weight: bold; font-size: 14px; text-transform: uppercase;">Governo do Estado da Bahia</p>
-            <p style="font-weight: bold; font-size: 13px;">Corpo de Bombeiros Militar da Bahia — CBMBA</p>
-            <p style="font-size: 12px; color: #555;">Coordenação de Licitações (CL)</p>
-            <h3 style="margin-top: 15px; font-size: 16px; font-weight: bold; text-decoration: underline;">CERTIDÃO DE PRAZOS PRECLUSIVOS</h3>
-            <p style="font-size: 12px; font-weight: bold; margin-top: 5px;">Processo SEI nº ${proc.numeroProcesso} | ${proc.edital}</p>
-          </div>
-
-          <div style="font-size: 13px; line-height: 1.7; text-align: justify;">
-            <p><strong>CERTIFICO</strong>, para os devidos fins de instrução processual e estrita observância aos ditames da <strong>Lei Federal nº 14.133/2021</strong>, que os prazos preclusivos para a presente contratação foram apurados da seguinte forma:</p>
-            
-            <table style="width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 12px;">
-              <thead>
-                <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                  <th style="padding: 8px; text-align: left; border: 1px solid #cbd5e1;">Ato / Marco Processual</th>
-                  <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">Fundamento Legal</th>
-                  <th style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">Data / Prazo Limite</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="padding: 8px; border: 1px solid #cbd5e1;">Publicação no PNCP e DOE-BA</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">Art. 54, caput</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">04/11/2026</td>
-                </tr>
-                <tr style="background-color: #fff1f2;">
-                  <td style="padding: 8px; border: 1px solid #cbd5e1;"><strong>Prazo Limite p/ Impugnações / Esclarecimentos</strong></td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">Art. 164, caput</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;"><strong>17/11/2026 às 23:59</strong></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px; border: 1px solid #cbd5e1;">Resposta tempestiva da Administração</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">Art. 164, parágrafo único</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">19/11/2026 às 18:00</td>
-                </tr>
-                <tr style="background-color: #f0fdf4;">
-                  <td style="padding: 8px; border: 1px solid #cbd5e1;"><strong>Abertura da Sessão de Lances (Licitações-e2)</strong></td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;">Art. 55, I, 'a'</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #cbd5e1;"><strong>20/11/2026 às 10:00</strong></td>
-                </tr>
-              </tbody>
-            </table>
-
-            <p>Certifico ainda que a contagem dos prazos observou a exclusão do primeiro dia e a inclusão do dia do vencimento, considerando exclusivamente os dias de expediente administrativo no Estado da Bahia.</p>
-            <p style="margin-top: 15px;">Encaminhe-se ao <strong>Pregoeiro Oficial (${proc.pregoeiro || proc.agentePrincipal})</strong> para a condução do certame.</p>
-
-            <div style="margin-top: 40px; text-align: center; font-size: 12px;">
-              <p>Salvador/BA, ${new Date().toLocaleDateString('pt-BR')}.</p>
-              <br><br>
-              <p><strong>COORDENAÇÃO DE LICITAÇÕES — CBMBA</strong></p>
-              <p style="font-size: 11px; color: #666;">(Documento assinado eletronicamente via SEI! Bahia)</p>
-            </div>
-          </div>
-        `;
-      } else if (template === 'despacho_conformidade') {
-        papel.innerHTML = `
-          <div style="text-align: center; margin-bottom: 25px;">
-            <p style="font-weight: bold; font-size: 14px; text-transform: uppercase;">Governo do Estado da Bahia</p>
-            <p style="font-weight: bold; font-size: 13px;">Corpo de Bombeiros Militar da Bahia — CBMBA</p>
-            <p style="font-size: 12px; color: #555;">Coordenação de Licitações (CL)</p>
-            <h3 style="margin-top: 15px; font-size: 15px; font-weight: bold;">DESPACHO DE CONFORMIDADE DA FASE PREPARATÓRIA</h3>
-            <p style="font-size: 12px; font-weight: bold; margin-top: 5px;">Processo SEI nº ${proc.numeroProcesso}</p>
-          </div>
-
-          <div style="font-size: 13px; line-height: 1.7; text-align: justify;">
-            <p>1. Trata-se da fase preparatória para a contratação cujo objeto é: <em>${proc.objeto}</em>.</p>
-            <p>2. Atesto a regularidade formal da instrução processual, encontrando-se colacionados aos autos:</p>
-            <ul style="margin: 10px 0 10px 25px;">
-              <li><strong>Documento de Formalização da Demanda (DFD)</strong> devidamente assinado;</li>
-              <li><strong>Estudo Técnico Preliminar (ETP)</strong> comprovando a viabilidade técnica;</li>
-              <li><strong>Matriz de Riscos</strong> em atendimento ao art. 18, X da Lei 14.133/21;</li>
-              <li><strong>Pesquisa Mercadológica de Preços</strong> com mapa comparativo;</li>
-              <li><strong>Termo de Referência</strong> aprovado pela autoridade competente;</li>
-              <li><strong>Parecer Jurídico Favorável da Procuradoria Geral do Estado (PGE)</strong>.</li>
-            </ul>
-            <p>3. Diante da conformidade plena, encaminho o feito para publicação do Edital no PNCP e agendamento no sistema Licitações-e2 do Banco do Brasil.</p>
-          </div>
-        `;
-      } else {
-        papel.innerHTML = `
-          <div style="text-align: center; margin-bottom: 25px;">
-            <p style="font-weight: bold; font-size: 14px; text-transform: uppercase;">Governo do Estado da Bahia</p>
-            <p style="font-weight: bold; font-size: 13px;">Corpo de Bombeiros Militar da Bahia</p>
-            <h3 style="margin-top: 15px; font-size: 15px; font-weight: bold;">DESPACHO DE DESIGNAÇÃO DO PREGOEIRO</h3>
-            <p style="font-size: 12px; font-weight: bold; margin-top: 5px;">Processo SEI nº ${proc.numeroProcesso}</p>
-          </div>
-          <div style="font-size: 13px; line-height: 1.7; text-align: justify;">
-            <p>1. Designo o <strong>${proc.pregoeiro || proc.agentePrincipal}</strong> como Agente de Contratação / Pregoeiro Oficial responsável pela condução da presente sessão pública.</p>
-            <p>2. Fica designada a Equipe de Apoio para assessoramento nos atos de julgamento e habilitação.</p>
-          </div>
-        `;
-      }
-    }
-
-    function copiarEditorSEI() {
-      const conteudo = document.getElementById('papelSEI');
-      const blob = new Blob([conteudo.innerHTML], { type: 'text/html' });
-      const clipboardItem = new ClipboardItem({
-        'text/html': blob,
-        'text/plain': new Blob([conteudo.innerText], { type: 'text/plain' })
-      });
-
-      navigator.clipboard.write([clipboardItem]).then(() => {
-        mostrarToast('✓ Minuta copiada com formatação oficial para colar direto no SEI!');
-      }).catch(() => {
-        // Fallback
-        navigator.clipboard.writeText(conteudo.innerText).then(() => {
-          mostrarToast('✓ Texto copiado!');
-        });
-      });
-    }
-
-    function copiarCertidaoGerada() {
-      mudarAba('despachos');
-      document.getElementById('selTemplateSEI').value = 'certidao_prazos';
-      gerarMinutaSEI();
-      copiarEditorSEI();
-    }
-
-    // NAVEGAÇÃO ENTRE ABAS
-    function mudarAba(nome) {
-      ['funil', 'agentes', 'prazos', 'despachos'].forEach(a => {
-        document.getElementById(`aba-${a}`).classList.add('hidden');
-        document.getElementById(`tabBtn-${a}`).className = "px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center gap-2";
-      });
-
-      document.getElementById(`aba-${nome}`).classList.remove('hidden');
-      document.getElementById(`tabBtn-${nome}`).className = "px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 border-indigo-500 text-indigo-400 bg-indigo-500/5 transition flex items-center gap-2";
-    }
-
-    function filtrarProcessos() {
-      renderizarFunil();
-    }
-
-    function filtrarPorAgente(nome) {
-      mudarAba('funil');
-      document.getElementById('filtroTexto').value = nome;
-      renderizarFunil();
-    }
-
-    let processoDetalhesAtual = null;
-
-    function selecionarProcesso(id) {
-      abrirModalDetalhes(id);
-    }
-
-    function abrirModalDetalhes(id) {
-      const proc = processos.find(p => p.id === id);
-      if (!proc) return;
-      processoDetalhesAtual = proc;
-
-      document.getElementById('detNumeroProcesso').innerText = proc.numeroProcesso || '';
-      document.getElementById('detModalidade').innerText = proc.modalidade || 'Pregão Eletrônico';
-      document.getElementById('detEditalTitulo').innerText = proc.edital ? `${proc.edital} • ${proc.numeroProcesso}` : proc.numeroProcesso;
-      document.getElementById('detObjetoTexto').innerText = proc.objeto || 'Demanda extraída do SEI! Bahia';
-      
-      const pregoeiroNome = proc.pregoeiro || proc.agentePrincipal || 'Renato Carvalho';
-      document.getElementById('detPregoeiroExibicao').innerText = pregoeiroNome;
-
-      const valorTexto = (proc.valorEstimado && proc.valorEstimado > 0)
-        ? proc.valorEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-        : 'Em Levantamento de Preços';
-      document.getElementById('detValorEstimadoTexto').innerText = valorTexto;
-
-      const nomesEstagios = {
-        1: '1. DFD, ETP & Riscos',
-        2: '2. Pesquisa de Preços & TR',
-        3: '3. Análise Jurídica (PGE)',
-        4: '4. Publicado no PNCP / Disputa'
-      };
-      document.getElementById('detEstagioTexto').innerText = nomesEstagios[proc.estagio || 1] || 'Fase Preparatória';
-
-      // Checklist Estatutário dos 8 pilares da Lei 14.133/21
-      const gridCheck = document.getElementById('gridChecklistDetalhes');
-      gridCheck.innerHTML = '';
-      const artes = proc.artefatos || [];
-      const pilares = [
-        { key: 'dfd', label: '1. DFD', presente: artes.some(a => a.pilar === 'dfd' || a.categoria === 'DFD') },
-        { key: 'etp', label: '2. ETP', presente: artes.some(a => a.pilar === 'etp' || a.categoria === 'ETP') },
-        { key: 'risco', label: '3. Riscos', presente: artes.some(a => a.pilar === 'risco' || a.categoria === 'Matriz de Risco') },
-        { key: 'tr', label: '4. TR / PB', presente: artes.some(a => a.pilar === 'tr' || a.categoria === 'Termo de Referência') },
-        { key: 'pesquisa', label: '5. Pesq. Preços', presente: artes.some(a => a.pilar === 'pesquisa' || a.categoria === 'Pesquisa de Preços') },
-        { key: 'portaria', label: '6. Portaria Pregoeiro', presente: artes.some(a => a.pilar === 'portaria' || a.categoria === 'Portaria de Designação') },
-        { key: 'pge', label: '7. Parecer PGE', presente: artes.some(a => a.pilar === 'pge' || a.categoria === 'Parecer Jurídico') },
-        { key: 'edital', label: '8. Edital / PNCP', presente: artes.some(a => a.pilar === 'edital' || a.categoria === 'Edital') }
-      ];
-
-      pilares.forEach(pil => {
-        const div = document.createElement('div');
-        div.className = `p-2 rounded-lg border text-xs flex items-center justify-between ${pil.presente ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-500'}`;
-        div.innerHTML = `
-          <span class="font-semibold">${pil.label}</span>
-          <span class="font-bold text-[11px]">${pil.presente ? '✓ Localizado' : '○ Pendente'}</span>
-        `;
-        gridCheck.appendChild(div);
-      });
-
-      // Acervo completo da árvore SEI
-      renderizarAcervoDocs(proc.artefatos || []);
-
-      document.getElementById('modalDetalhes').classList.remove('hidden');
-    }
-
-    function renderizarAcervoDocs(artefatos, filtro = '') {
-      const container = document.getElementById('listaAcervoSei');
-      document.getElementById('detTotalDocsContador').innerText = artefatos ? artefatos.length : 0;
-      container.innerHTML = '';
-
-      if (!artefatos || artefatos.length === 0) {
-        container.innerHTML = '<p class="text-slate-500 italic text-[11px] p-3 text-center">Nenhum documento detectado na árvore do SEI ainda.</p>';
-        return;
-      }
-
-      const filtrados = filtro 
-        ? artefatos.filter(a => a.nome.toLowerCase().includes(filtro.toLowerCase()) || (a.categoria && a.categoria.toLowerCase().includes(filtro.toLowerCase())))
-        : artefatos;
-
-      if (filtrados.length === 0) {
-        container.innerHTML = '<p class="text-slate-500 italic text-[11px] p-2 text-center">Nenhum documento bate com a busca.</p>';
-        return;
-      }
-
-      filtrados.forEach((art, idx) => {
-        const item = document.createElement('div');
-        item.className = "py-1.5 px-2 flex items-center justify-between gap-2 text-[11px] hover:bg-slate-900/60 rounded transition";
-        item.innerHTML = `
-          <div class="flex items-center gap-2 truncate">
-            <span class="text-slate-500 font-mono text-[10px] w-5 text-right">${idx + 1}.</span>
-            <span class="font-medium text-slate-200 truncate" title="${art.nome}">${art.nome}</span>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${art.assinado ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-slate-900 text-slate-400 border border-slate-800'}">
-              ${art.categoria || 'Geral'}
-            </span>
-            ${art.assinado ? '<span title="Assinado eletronicamente" class="text-emerald-400 text-xs">✍</span>' : ''}
-            ${art.externo ? '<span title="Documento Externo" class="text-sky-400 text-[10px]">EXT</span>' : ''}
-          </div>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function filtrarDocsAcervo(val) {
-      if (!processoDetalhesAtual) return;
-      renderizarAcervoDocs(processoDetalhesAtual.artefatos || [], val);
-    }
-
-    function fecharModalDetalhes() {
-      document.getElementById('modalDetalhes').classList.add('hidden');
-      processoDetalhesAtual = null;
-    }
-
-    function irParaCalculadoraDoProcesso() {
-      if (!processoDetalhesAtual) return;
-      const id = processoDetalhesAtual.id;
-      fecharModalDetalhes();
-      mudarAba('prazos');
-      document.getElementById('selCalcProcesso').value = id;
-      carregarProcessoNaCalculadora();
-    }
-
-    function irParaMinutaDoProcesso() {
-      if (!processoDetalhesAtual) return;
-      const id = processoDetalhesAtual.id;
-      fecharModalDetalhes();
-      mudarAba('certidao');
-      document.getElementById('selCertProcesso').value = id;
-      gerarMinutaSEI();
-    }
-
-    function excluirProcessoAtual() {
-      if (!processoDetalhesAtual) return;
-      if (confirm(`Tem certeza que deseja remover o processo ${processoDetalhesAtual.numeroProcesso} do painel?`)) {
-        processos = processos.filter(p => p.id !== processoDetalhesAtual.id);
-        salvar();
-        renderizarTudo();
-        fecharModalDetalhes();
-        mostrarToast('Processo removido com sucesso.');
-      }
-    }
-
-    function copiarTexto(texto) {
-      if (!texto) return;
-      navigator.clipboard.writeText(texto).then(() => {
-        mostrarToast('✓ Copiado para a área de transferência!');
-      });
-    }
-
-    // MODAL DE IMPORTAÇÃO
-    function abrirModalImportacao() {
-      document.getElementById('modalImport').classList.remove('hidden');
-    }
-    function fecharModalImportacao() {
-      document.getElementById('modalImport').classList.add('hidden');
-    }
-
-    async function colarDaAreaDeTransferencia() {
-      try {
-        const texto = await navigator.clipboard.readText();
-        if (texto) {
-          document.getElementById('txtManualJson').value = texto;
-          processarJsonManual();
-        } else {
-          alert('Área de transferência vazia.');
-        }
-      } catch (e) {
-        alert('Por favor, cole o texto na caixa abaixo (Ctrl+V).');
-      }
-    }
-
-    function processarJsonManual() {
-      const raw = document.getElementById('txtManualJson').value.trim();
-      if (!raw) return;
-
-      try {
-        const payload = JSON.parse(raw);
-        importarProcesso(payload);
-        fecharModalImportacao();
-      } catch (e) {
-        alert('JSON inválido. Certifique-se de copiar os dados do PluginNato.');
-      }
-    }
-
-    // INTEGRAÇÃO COM PLUGINNATO (REALTIME, STORAGE & URL)
-    function importarProcesso(payload) {
-      if (!payload || !payload.numeroProcesso) return;
-
-      // Se a lista só continha dados fictícios de demonstração, limpa imediatamente para dar lugar aos dados reais
-      if (processos.length > 0 && processos.every(p => p.isExemplo)) {
-        processos = [];
-      }
-
-      const indexExistente = processos.findIndex(p => p.numeroProcesso === payload.numeroProcesso);
-      const existente = indexExistente >= 0 ? processos[indexExistente] : null;
-
-      // Determinação inteligente do Pregoeiro
-      let pregoeiroDefinido = payload.pregoeiro;
-      
-      // Se for o processo informado pelo usuário ou se o usuário logado for Renato Carvalho
-      if (payload.numeroProcesso.includes('36318') || (payload.usuarioLogado && payload.usuarioLogado.toUpperCase().includes('RENATO'))) {
-        pregoeiroDefinido = 'Renato Carvalho';
-      }
-
-      if (!pregoeiroDefinido && existente && existente.pregoeiro) {
-        pregoeiroDefinido = existente.pregoeiro;
-      }
-      if (!pregoeiroDefinido && payload.agentes) {
-        const renato = payload.agentes.find(a => a.toUpperCase().includes('RENATO') || a.toUpperCase().includes('CARVALHO'));
-        if (renato) pregoeiroDefinido = renato;
-      }
-      if (!pregoeiroDefinido && existente && existente.agentePrincipal) {
-        pregoeiroDefinido = existente.agentePrincipal;
-      }
-      if (!pregoeiroDefinido && payload.agentes && payload.agentes.length > 0) {
-        pregoeiroDefinido = payload.agentes[0];
-      }
-      if (!pregoeiroDefinido) {
-        pregoeiroDefinido = 'Renato Carvalho';
-      }
-
-      const valorEstimadoFinal = (payload.valorEstimado && payload.valorEstimado > 0)
-        ? payload.valorEstimado
-        : (existente ? existente.valorEstimado : 0);
-
-      const novoOuAtualizado = {
-        id: existente ? existente.id : Date.now().toString(),
-        numeroProcesso: payload.numeroProcesso,
-        edital: payload.edital || (existente ? existente.edital : (payload.numeroProcesso.includes('.') ? `SEI ${payload.numeroProcesso.split('.')[0]}` : 'PROCESSO')),
-        objeto: (payload.objeto && payload.objeto.length > 15) ? payload.objeto : (existente ? existente.objeto : (payload.objeto || 'Demanda extraída do SEI! Bahia')),
-        modalidade: existente ? existente.modalidade : (payload.modalidade || 'Pregão Eletrônico'),
-        estagio: existente ? existente.estagio : determinarEstagioPelosArtefatos(payload.artefatos),
-        pregoeiro: pregoeiroDefinido,
-        agentePrincipal: pregoeiroDefinido,
-        equipeApoio: (payload.equipeApoio && payload.equipeApoio.length > 0) ? payload.equipeApoio : (payload.agentes || (existente ? existente.equipeApoio : [])),
-        valorEstimado: valorEstimadoFinal,
-        dataPublicacao: existente ? existente.dataPublicacao : '',
-        dataAbertura: payload.dataAbertura || (existente ? existente.dataAbertura : ''),
-        artefatos: (payload.artefatos && payload.artefatos.length > 0) ? payload.artefatos : (existente ? existente.artefatos : []),
-        isExemplo: false,
-        pncpSync: false
-      };
-
-      if (indexExistente >= 0) {
-        processos[indexExistente] = novoOuAtualizado;
-      } else {
-        processos.unshift(novoOuAtualizado);
-      }
-
-      salvar();
-      renderizarTudo();
-      mostrarToast(`✓ Processo nº ${payload.numeroProcesso} sincronizado (Pregoeiro: ${pregoeiroDefinido})`);
-    }
-
-    function limparDadosExemplo() {
-      processos = processos.filter(p => !p.isExemplo);
-      salvar();
-      renderizarTudo();
-      mostrarToast('Dados fictícios removidos com sucesso!');
-    }
-
-    function carregarDemonstracao() {
-      processos = [...DADOS_EXEMPLO];
-      salvar();
-      renderizarTudo();
-      mostrarToast('Dados de demonstração carregados.');
-    }
-
-    function limparTudo() {
-      if (confirm('Deseja limpar todos os processos armazenados no painel?')) {
-        processos = [];
-        salvar();
-        renderizarTudo();
-      }
-    }
-
-    function pedirSincronizacaoExtensao() {
-      window.postMessage({ tipo: 'PEDIR_DADOS_PLUGINNATO' }, '*');
-      mostrarToast('Solicitando processos mais recentes ao PluginNato...');
-    }
-
-    function determinarEstagioPelosArtefatos(artefatos) {
-      if (!artefatos || artefatos.length === 0) return 1;
-      const temEdital = artefatos.some(a => a.categoria === 'Edital' || a.pilar === 'edital');
-      if (temEdital) return 4;
-      const temPGE = artefatos.some(a => a.categoria === 'Parecer Jurídico' || a.pilar === 'pge');
-      if (temPGE) return 3;
-      const temTR = artefatos.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Pesquisa de Preços' || a.categoria === 'Portaria de Designação' || a.pilar === 'tr' || a.pilar === 'pesquisa' || a.pilar === 'portaria');
-      if (temTR) return 2;
-      return 1;
-    }
-
-    function verificarPayloadUrl() {
-      const hash = window.location.hash;
-      if (hash.includes('payload=')) {
-        try {
-          const match = hash.match(/payload=([^&]+)/);
-          if (match && match[1]) {
-            const jsonStr = decodeURIComponent(match[1]);
-            const payload = JSON.parse(jsonStr);
-            importarProcesso(payload);
-            window.location.hash = ''; // Limpa hash
-          }
-        } catch (e) {
-          console.warn('Erro ao decodificar payload na URL:', e);
-        }
-      }
-    }
-
-    function configurarOuvinteMensagens() {
-      // Ouve mensagens vindas da extensão PluginNato (via bridge ou postMessage)
+    // CONFIGURAÇÃO DOS OUVINTES DA EXTENSÃO (BRIDGE & POSTMESSAGE)
+    function configurarOuvintesPonte() {
       window.addEventListener('message', (event) => {
         if (!event.data) return;
 
+        // 1. PluginNato disponível
         if (event.data.tipo === 'PLUGINNATO_DISPONIVEL') {
-          const el = document.getElementById('pluginNatoStatus');
-          if (el) {
-            el.className = "flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold shadow-sm shadow-emerald-500/20";
-            el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span><span>PluginNato Conectado (v${event.data.versao})</span>`;
+          const badge = document.getElementById('pluginStatusBadge');
+          const txt = document.getElementById('pluginStatusText');
+          if (badge && txt) {
+            badge.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold shadow-sm shadow-emerald-500/10";
+            txt.innerHTML = `PluginNato Ativo (v${event.data.versao || '1.0.6'})`;
+            badge.querySelector('span').className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
           }
         }
 
-        if (event.data.tipo === 'PLUGINDATA_UPDATE') {
-          importarProcesso(event.data.payload);
+        // 2. Histórico completo de processos enviado pelo Plugin
+        if (event.data.tipo === 'PLUGINDATA_HISTORICO_COMPLETO') {
+          processarHistoricoDoPlugin(event.data.historico || event.data.payload);
         }
 
-        if (event.data.tipo === 'PLUGINDATA_HISTORICO_COMPLETO') {
-          importarHistoricoCompleto(event.data.payload);
+        // 3. Atualização individual de um processo (bandeja ou árvore)
+        if (event.data.tipo === 'PLUGINDATA_UPDATE') {
+          processarProcessoIndividual(event.data.processo || event.data.payload);
         }
       });
 
-      // Solicita dados imediatamente ao carregar
-      setTimeout(() => {
-        window.postMessage({ tipo: 'PEDIR_DADOS_PLUGINNATO' }, '*');
-      }, 400);
+      // Solicita dados imediatamente à extensão
+      setTimeout(solicitarSincronizacao, 300);
+      setTimeout(solicitarSincronizacao, 1000);
     }
 
-    function importarHistoricoCompleto(historico) {
+    function solicitarSincronizacao() {
+      window.postMessage({ tipo: 'PEDIR_DADOS_PLUGINNATO' }, '*');
+      mostrarToast('Sincronizando com o PluginNato...');
+    }
+
+    // PROCESSAMENTO DO HISTÓRICO
+    function processarHistoricoDoPlugin(historico) {
       if (!historico || typeof historico !== 'object') return;
       const lista = Object.values(historico);
       if (lista.length === 0) return;
 
-      if (processos.length > 0 && processos.every(p => p.isExemplo)) {
-        processos = [];
+      lista.forEach(p => {
+        atualizarOuInserirProcesso(p, false);
+      });
+
+      salvar();
+      renderizarProcessos();
+      mostrarToast(`✓ Sincronizado: ${lista.length} processo(s) atualizados.`);
+    }
+
+    // PROCESSAMENTO DE PROCESSO INDIVIDUAL
+    function processarProcessoIndividual(proc) {
+      if (!proc || !proc.numeroProcesso) return;
+      atualizarOuInserirProcesso(proc, true);
+      salvar();
+      renderizarProcessos();
+    }
+
+    function atualizarOuInserirProcesso(dados, notificar = true) {
+      const num = dados.numeroProcesso;
+      if (!num) return;
+
+      const idx = processos.findIndex(p => p.numeroProcesso === num);
+      const existente = idx >= 0 ? processos[idx] : null;
+
+      // Preserva ou atualiza a atribuição
+      let atribuido = dados.atribuidoA;
+      if ((!atribuido || atribuido === 'Não atribuído') && existente && existente.atribuidoA && existente.atribuidoA !== 'Não atribuído') {
+        atribuido = existente.atribuidoA;
+      }
+      if (!atribuido && dados.pregoeiro) {
+        atribuido = dados.pregoeiro;
+      }
+      if (!atribuido) {
+        atribuido = num.includes('36318') ? 'Renato Carvalho' : 'Não atribuído';
       }
 
-      lista.forEach(p => {
-        importarProcesso(p);
-      });
+      // Preserva ou atualiza as peças
+      let pecasFinais = [];
+      if (dados.pecas && dados.pecas.length > 0) {
+        pecasFinais = dados.pecas;
+      } else if (dados.artefatos && dados.artefatos.length > 0) {
+        pecasFinais = dados.artefatos.map((a, i) => ({
+          ordem: i + 1,
+          nome: a.nome,
+          descricaoCompleta: a.descricaoCompleta || a.nome,
+          tipo: a.categoria || 'Documento',
+          assinado: a.assinado || false,
+          assinadoPor: a.assinadoPor || '',
+          externo: a.externo || false
+        }));
+      } else if (existente && existente.pecas && existente.pecas.length > 0) {
+        pecasFinais = existente.pecas;
+      }
+
+      const processoAtualizado = {
+        numeroProcesso: num,
+        atribuidoA: atribuido,
+        pecas: pecasFinais,
+        totalPecas: pecasFinais.length,
+        ultimaAtualizacao: dados.ultimaAtualizacao || new Date().toISOString()
+      };
+
+      if (idx >= 0) {
+        processos[idx] = processoAtualizado;
+      } else {
+        processos.unshift(processoAtualizado);
+      }
+
+      if (notificar) {
+        mostrarToast(`✓ Processo nº ${num} atualizado (${pecasFinais.length} peças)`);
+      }
     }
 
-    // MODAL NOVO PROCESSO
-    function abrirModalNovo() {
-      document.getElementById('modalNovo').classList.remove('hidden');
-    }
-    function fecharModalNovo() {
-      document.getElementById('modalNovo').classList.add('hidden');
-    }
+    // RENDERIZAÇÃO NA TELA
+    function renderizarProcessos() {
+      const container = document.getElementById('containerProcessos');
+      const termo = (document.getElementById('campoBusca')?.value || '').toLowerCase().trim();
 
-    function salvarNovoProcesso() {
-      const numero = document.getElementById('novoNumero').value.trim();
-      const objeto = document.getElementById('novoObjeto').value.trim();
-      if (!numero || !objeto) {
-        alert('Preencha pelo menos o número e o objeto do processo.');
+      // Atualiza contadores do resumo
+      document.getElementById('contadorTotalProcessos').innerText = processos.length;
+      
+      const atribuidos = processos.filter(p => p.atribuidoA && p.atribuidoA !== 'Não atribuído').length;
+      document.getElementById('contadorProcessosAtribuidos').innerText = atribuidos;
+
+      const totalPecas = processos.reduce((acc, p) => acc + (p.totalPecas || (p.pecas ? p.pecas.length : 0)), 0);
+      document.getElementById('contadorTotalPecas').innerText = totalPecas;
+
+      // ESTADO VAZIO (ZERO DADOS DE EXEMPLO)
+      if (processos.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-5">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto text-3xl shadow-inner">
+              📂
+            </div>
+            <div class="space-y-2">
+              <h3 class="text-base font-bold text-white">Nenhum processo capturado ainda</h3>
+              <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                Abra o <strong>SEI! Bahia</strong> no seu navegador. O <strong>PluginNato</strong> lerá automaticamente a sua bandeja de processos e os artefatos de cada processo que você abrir, exibindo-os aqui instantaneamente.
+              </p>
+            </div>
+            <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4 max-w-lg mx-auto text-left space-y-2 text-xs">
+              <p class="font-semibold text-slate-300">Como funciona o fluxo 100% automático:</p>
+              <ul class="space-y-1.5 text-slate-400 text-[11px]">
+                <li class="flex items-start gap-2">
+                  <span class="text-indigo-400 font-bold">1.</span>
+                  <span>Acesse o <strong>SEI! Bahia</strong> na sua unidade (CBMBA/CL).</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-indigo-400 font-bold">2.</span>
+                  <span>Na tela <strong>Controle de Processos</strong> (bandeja), a extensão lê os processos e as atribuições.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-indigo-400 font-bold">3.</span>
+                  <span>Ao clicar em qualquer processo, a árvore de peças é lida e sincronizada aqui na hora, sem precisar digitar nada.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        `;
         return;
       }
 
-      const novo = {
-        id: Date.now().toString(),
-        numeroProcesso: numero,
-        edital: 'PROCESSO',
-        objeto: objeto,
-        modalidade: document.getElementById('novoModalidade').value,
-        estagio: parseInt(document.getElementById('novoEstagio').value) || 1,
-        agentePrincipal: document.getElementById('novoAgente').value.trim() || 'A Definir',
-        valorEstimado: parseFloat(document.getElementById('novoValor').value) || 0,
-        dataPublicacao: '',
-        dataAbertura: '',
-        artefatos: [
-          { nome: 'DFD Inicial', categoria: 'DFD', assinado: true }
-        ],
-        pncpSync: false
-      };
+      // Filtra processos
+      const filtrados = processos.filter(p => {
+        if (!termo) return true;
+        const bateNumero = p.numeroProcesso.toLowerCase().includes(termo);
+        const bateAtribuicao = (p.atribuidoA || '').toLowerCase().includes(termo);
+        const batePeca = p.pecas && p.pecas.some(peca => peca.nome.toLowerCase().includes(termo) || (peca.descricaoCompleta && peca.descricaoCompleta.toLowerCase().includes(termo)));
+        return bateNumero || bateAtribuicao || batePeca;
+      });
 
-      processos.unshift(novo);
-      salvar();
-      renderizarTudo();
-      fecharModalNovo();
-      mostrarToast(`✓ Processo nº ${numero} cadastrado com sucesso!`);
+      if (filtrados.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-900/30 border border-slate-800/60 rounded-2xl p-8 text-center text-slate-500 text-xs">
+            Nenhum processo encontrado para a busca "<strong>${termo}</strong>".
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+
+      filtrados.forEach((proc, idx) => {
+        const pecas = proc.pecas || [];
+        const isRenato = (proc.atribuidoA || '').toUpperCase().includes('RENATO');
+        const dtAtualizacao = proc.ultimaAtualizacao ? new Date(proc.ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:border-slate-700 transition";
+
+        card.innerHTML = `
+          <!-- CABEÇALHO DO PROCESSO -->
+          <div class="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/40 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                ${idx + 1}
+              </span>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2 class="text-sm sm:text-base font-bold text-white font-mono tracking-tight">${proc.numeroProcesso}</h2>
+                  ${dtAtualizacao ? `<span class="text-[10px] text-slate-500">Sincronizado às ${dtAtualizacao}</span>` : ''}
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Processo capturado do SEI! Bahia</p>
+              </div>
+            </div>
+
+            <!-- Bloco de Atribuição na Bandeja -->
+            <div class="flex items-center gap-2">
+              <div class="px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs font-semibold ${isRenato ? 'bg-sky-500/10 border-sky-500/30 text-sky-300' : (proc.atribuidoA && proc.atribuidoA !== 'Não atribuído' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'bg-slate-800/80 border-slate-700 text-slate-400')}">
+                <span class="text-sm">👤</span>
+                <div class="flex flex-col">
+                  <span class="text-[9px] uppercase tracking-wider text-slate-400">Atribuído na Bandeja:</span>
+                  <span class="font-bold">${proc.atribuidoA || 'Não atribuído'}</span>
+                </div>
+              </div>
+
+              <div class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-medium flex items-center gap-1.5">
+                <span>📎</span>
+                <span><strong>${pecas.length}</strong> peças</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LISTA DE PEÇAS INSERIDAS ATÉ O MOMENTO -->
+          <div class="p-4 sm:p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>Peças inseridas até o momento</span>
+                <span class="text-[10px] font-semibold text-slate-500 font-mono">(${pecas.length})</span>
+              </h3>
+            </div>
+
+            ${pecas.length === 0 ? `
+              <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-slate-500 text-xs space-y-1">
+                <p class="font-medium text-slate-400">Nenhuma peça aberta na árvore ainda para este processo.</p>
+                <p class="text-[11px]">No SEI! Bahia, clique sobre o processo para que o PluginNato leia todas as peças da árvore instantaneamente.</p>
+              </div>
+            ` : `
+              <div class="divide-y divide-slate-800/60 border border-slate-800/80 rounded-xl overflow-hidden bg-slate-950/50">
+                ${pecas.map((peca, pIdx) => `
+                  <div class="p-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-900/50 transition">
+                    
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <span class="text-[11px] font-mono text-slate-500 w-5 text-right shrink-0">${pIdx + 1}.</span>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="text-xs font-semibold text-slate-100 truncate">${peca.nome}</span>
+                          ${peca.externo ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30 uppercase">Externo</span>` : ''}
+                        </div>
+                        ${peca.descricaoCompleta && peca.descricaoCompleta !== peca.nome ? `
+                          <p class="text-[11px] text-slate-400 truncate mt-0.5" title="${peca.descricaoCompleta}">
+                            ${peca.descricaoCompleta}
+                          </p>
+                        ` : ''}
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <!-- Tipo da Peça -->
+                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                        ${peca.tipo || 'Documento'}
+                      </span>
+
+                      <!-- Assinatura -->
+                      ${peca.assinado ? `
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1" title="${peca.assinadoPor ? `Assinado por: ${peca.assinadoPor}` : 'Documento assinado eletronicamente'}">
+                          <span>✍</span>
+                          <span>${peca.assinadoPor ? peca.assinadoPor.split(' ')[0] : 'Assinado'}</span>
+                        </span>
+                      ` : `
+                        <span class="px-2 py-0.5 rounded text-[10px] text-slate-500 border border-slate-800/80">
+                          Pendente
+                        </span>
+                      `}
+                    </div>
+
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
     }
 
+    function filtrarProcessos() {
+      renderizarProcessos();
+    }
+
+    // LIMPEZA DO PAINEL
+    function limparPainel() {
+      if (confirm('Deseja realmente limpar todos os processos armazenados no painel?')) {
+        processos = [];
+        salvar();
+        renderizarProcessos();
+        mostrarToast('Painel limpo com sucesso.');
+      }
+    }
+
+    // FEEDBACK VISUAL (TOAST)
     function mostrarToast(msg) {
-      const toast = document.getElementById('toastSync');
-      document.getElementById('toastSyncMsg').innerText = msg;
-      toast.classList.remove('hidden');
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      if (!toast || !toastMsg) return;
+
+      toastMsg.innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
       setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 5000);
-    }
-    function fecharToast() {
-      document.getElementById('toastSync').classList.add('hidden');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
     }
 
-    // INICIAR AO CARREGAR
+    // Executa ao carregar
     window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>

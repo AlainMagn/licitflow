@@ -183,6 +183,12 @@
       if (salvo) {
         try {
           processos = JSON.parse(salvo);
+          // Purifica imediatamente todas as peças carregadas do storage
+          processos.forEach(p => {
+            p.pecas = sanitizarEClassificarPecas(p.pecas || [], p.numeroProcesso);
+            p.totalPecas = p.pecas.length;
+          });
+          salvar();
         } catch (e) {
           processos = [];
         }
@@ -259,6 +265,194 @@
       renderizarProcessos();
     }
 
+    /**
+     * SANITIZAÇÃO RIGOROSA DE PEÇAS PROCESSUAIS (LEI 14.133 / SEI BAHIA)
+     * =================================================================
+     * Peças são DOCUMENTOS COM NOME PRÓPRIO (internos do SEI ou externos).
+     * Descarta metadados de assinatura, anotações, ações de interface,
+     * links vazios e desduplica itens do mesmo documento.
+     */
+    function sanitizarEClassificarPecas(listaBruta, numeroProcesso) {
+      if (!listaBruta || !Array.isArray(listaBruta) || listaBruta.length === 0) {
+        return [];
+      }
+
+      const pecasLegitimas = [];
+      const chavesVistas = new Set();
+      let ultimaPecaValida = null;
+
+      // Padrões de metadados, ações e ruídos de tela que NUNCA são peças
+      const padroesDescarte = [
+        /documento assinado eletronicamente/i,
+        /assinado eletronicamente por/i,
+        /assinado por/i,
+        /assinatura eletrônica/i,
+        /verificar conformidade/i,
+        /conferência de autenticidade/i,
+        /consultar andamento/i,
+        /consultar histórico/i,
+        /histórico do processo/i,
+        /pesquisar no processo/i,
+        /imprimir documento/i,
+        /download do documento/i,
+        /definir atribuição/i,
+        /atribuído a/i,
+        /incluir documento/i,
+        /enviar processo/i,
+        /atualizar árvore/i,
+        /anotação:/i,
+        /anotacao:/i,
+        /marcador:/i,
+        /lembrete:/i,
+        /ciência:/i,
+        /^javascript:/i,
+        /^infraarvore/i,
+        /^\[\+\]$/,
+        /^\[\-\]$/,
+        /^\+$/,
+        /^\-$/
+      ];
+
+      // Tipologias documentais formais com nome próprio
+      const tiposDocumentais = [
+        { regex: /\b(PORTARIA)\b/i, tipo: 'Portaria' },
+        { regex: /\b(DFD|DOCUMENTO DE FORMALIZAÇÃO DA DEMANDA|FORMALIZACAO DA DEMANDA)\b/i, tipo: 'DFD' },
+        { regex: /\b(ETP|ESTUDO TÉCNICO PRELIMINAR|ESTUDO TECNICO PRELIMINAR|ESTUDOS TÉCNICOS)\b/i, tipo: 'ETP' },
+        { regex: /\b(MATRIZ DE RISCO|MAPA DE RISCO|GERENCIAMENTO DE RISCO|RISCOS?)\b/i, tipo: 'Matriz de Risco' },
+        { regex: /\b(TERMO DE REFERÊNCIA|TERMO DE REFERENCIA|\bTR\b|PROJETO BÁSICO|PROJETO BASICO|\bPB\b)\b/i, tipo: 'Termo de Referência' },
+        { regex: /\b(PESQUISA DE PREÇO|PESQUISA DE PRECO|PESQUISA MERCADOLÓGICA|PESQUISA MERCADOLOGICA|MAPA DE PREÇO|MAPA COMPARATIVO|COTAÇÃO|COTACAO|PAINEL DE PREÇO)\b/i, tipo: 'Pesquisa de Preços' },
+        { regex: /\b(PARECER|NOTA JURÍDICA|NOTA JURIDICA|COTA JURÍDICA|COTA JURIDICA|PRONUNCIAMENTO|DESPACHO PGE|PGE|PROESP)\b/i, tipo: 'Parecer Jurídico' },
+        { regex: /\b(EDITAL|MINUTA DE EDITAL|AVISO DE LICITAÇÃO|AVISO DE LICITACAO|EXTRATO DE EDITAL)\b/i, tipo: 'Edital' },
+        { regex: /\b(DESPACHO)\b/i, tipo: 'Despacho' },
+        { regex: /\b(CERTIDÃO|CERTIDAO)\b/i, tipo: 'Certidão' },
+        { regex: /\b(ATA)\b/i, tipo: 'Ata' },
+        { regex: /\b(OFÍCIO|OFICIO)\b/i, tipo: 'Ofício' },
+        { regex: /\b(MEMORANDO)\b/i, tipo: 'Memorando' },
+        { regex: /\b(NOTA TÉCNICA|NOTA TECNICA|INFORMAÇÃO TÉCNICA)\b/i, tipo: 'Nota Técnica' },
+        { regex: /\b(RELATÓRIO|RELATORIO)\b/i, tipo: 'Relatório' },
+        { regex: /\b(PLANILHA|DEMONSTRATIVO)\b/i, tipo: 'Planilha Orçamentária' },
+        { regex: /\b(DECLARAÇÃO|DECLARACAO)\b/i, tipo: 'Declaração' },
+        { regex: /\b(CONTRATO|TERMO ADITIVO|APOSTILAMENTO)\b/i, tipo: 'Contrato' },
+        { regex: /\b(PROPOSTA|PROPOSTA COMERCIAL|PROPOSTA DE PREÇO)\b/i, tipo: 'Proposta' },
+        { regex: /\b(PUBLICAÇÃO|PUBLICACAO|DOE|EXTRATO|DIÁRIO OFICIAL)\b/i, tipo: 'Publicação' },
+        { regex: /\b(ATESTADO|ATESTADO DE CAPACIDADE)\b/i, tipo: 'Atestado' },
+        { regex: /\b(NOTA FISCAL|FATURA|EMPENHO)\b/i, tipo: 'Doc. Financeiro' },
+        { regex: /\b(CATÁLOGO|CATALOGO|FOLDER|MANUAL)\b/i, tipo: 'Catálogo / Manual' },
+        { regex: /\b(REQUERIMENTO|SOLICITAÇÃO|SOLICITACAO)\b/i, tipo: 'Requerimento' },
+        { regex: /\b(JUSTIFICATIVA)\b/i, tipo: 'Justificativa' },
+        { regex: /\b(ANEXO)\b/i, tipo: 'Anexo' }
+      ];
+
+      listaBruta.forEach(item => {
+        if (!item) return;
+
+        let nome = (item.nome || '').trim();
+        let descricao = (item.descricaoCompleta || '').trim();
+
+        // 1. Descarta strings vazias ou ruídos ínfimos
+        if (!nome && !descricao) return;
+        if (nome.length < 3 && (!descricao || descricao.length < 3)) return;
+
+        // 2. Descarta o nó do próprio processo
+        if (numeroProcesso) {
+          const numProcLimpo = numeroProcesso.replace(/[^\d]/g, '');
+          const nomeLimpo = nome.replace(/[^\d]/g, '');
+          if (nomeLimpo === numProcLimpo && numProcLimpo.length >= 10) {
+            return;
+          }
+        }
+
+        // 3. Metadados de Assinatura: NÃO são peças! Vinculam-se à peça legítima anterior
+        const isAssinatura = /documento assinado eletronicamente por|assinado eletronicamente por|assinado por/i.test(nome) ||
+                             /documento assinado eletronicamente por|assinado eletronicamente por/i.test(descricao);
+
+        if (isAssinatura) {
+          if (ultimaPecaValida) {
+            ultimaPecaValida.assinado = true;
+            const textoAss = `${nome} ${descricao}`;
+            const match = textoAss.match(/por[:\s]+([^,;\.\n]+)/i);
+            if (match && match[1]) {
+              ultimaPecaValida.assinadoPor = match[1].replace(/em\s+\d{2}\/\d{2}.*/i, '').trim();
+            }
+          }
+          return; // Descarta, não entra como peça
+        }
+
+        // 4. Descarta outros metadados, ações da árvore ou marcadores
+        for (const padrao of padroesDescarte) {
+          if (padrao.test(nome) || (descricao && padrao.test(descricao))) {
+            return;
+          }
+        }
+
+        // 5. Identifica o número do documento SEI (ex: (36318) ou número sequencial)
+        let idDocSei = '';
+        const matchIdSei = (nome + ' ' + descricao).match(/\((\d{4,10})\)/) || (nome + ' ' + descricao).match(/\b(\d{5,9})\b/);
+        if (matchIdSei) {
+          idDocSei = matchIdSei[1];
+        }
+
+        // 6. Classifica tipo documental
+        const textoAnalise = `${nome} ${descricao}`;
+        let tipoIdentificado = 'Documento';
+
+        for (const t of tiposDocumentais) {
+          if (t.regex.test(textoAnalise)) {
+            tipoIdentificado = t.tipo;
+            break;
+          }
+        }
+
+        // Valida se possui nome próprio documental
+        const temNomeProprio = tipoIdentificado !== 'Documento' || idDocSei || /\b(doc|documento|termo|estudo|portaria|edital|despacho|certid|parecer|ata|oficio|nota|relat|planilha|declara|contrato|proposta|anexo)\b/i.test(textoAnalise);
+        if (!temNomeProprio) {
+          return;
+        }
+
+        // 7. Nome de exibição preferencial
+        let nomeExibicao = nome;
+        if (nome.length < 5 && descricao.length > 5) {
+          nomeExibicao = descricao;
+        }
+
+        // 8. Desduplicação por identificador SEI ou nome normalizado
+        const chaveUnica = idDocSei ? `sei-${idDocSei}` : nomeExibicao.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (chavesVistas.has(chaveUnica)) {
+          const existente = pecasLegitimas.find(p => p.chaveUnica === chaveUnica);
+          if (existente) {
+            if (item.assinado) existente.assinado = true;
+            if (item.assinadoPor && !existente.assinadoPor) existente.assinadoPor = item.assinadoPor;
+            if (descricao.length > existente.descricaoCompleta.length) existente.descricaoCompleta = descricao;
+          }
+          return;
+        }
+
+        chavesVistas.add(chaveUnica);
+
+        const pecaLimpa = {
+          ordem: pecasLegitimas.length + 1,
+          chaveUnica: chaveUnica,
+          idDocSei: idDocSei,
+          nome: nomeExibicao,
+          descricaoCompleta: (descricao && descricao !== nomeExibicao) ? descricao : '',
+          tipo: tipoIdentificado,
+          assinado: item.assinado || false,
+          assinadoPor: item.assinadoPor || '',
+          externo: item.externo || false
+        };
+
+        pecasLegitimas.push(pecaLimpa);
+        ultimaPecaValida = pecaLimpa;
+      });
+
+      // Numeração sequencial limpa
+      pecasLegitimas.forEach((p, idx) => {
+        p.ordem = idx + 1;
+      });
+
+      return pecasLegitimas;
+    }
+
     function atualizarOuInserirProcesso(dados, notificar = true) {
       const num = dados.numeroProcesso;
       if (!num) return;
@@ -278,23 +472,17 @@
         atribuido = num.includes('36318') ? 'Renato Carvalho' : 'Não atribuído';
       }
 
-      // Preserva ou atualiza as peças
-      let pecasFinais = [];
+      // Preserva ou atualiza as peças com filtro e sanitização rigorosa
+      let pecasCandidatas = [];
       if (dados.pecas && dados.pecas.length > 0) {
-        pecasFinais = dados.pecas;
+        pecasCandidatas = dados.pecas;
       } else if (dados.artefatos && dados.artefatos.length > 0) {
-        pecasFinais = dados.artefatos.map((a, i) => ({
-          ordem: i + 1,
-          nome: a.nome,
-          descricaoCompleta: a.descricaoCompleta || a.nome,
-          tipo: a.categoria || 'Documento',
-          assinado: a.assinado || false,
-          assinadoPor: a.assinadoPor || '',
-          externo: a.externo || false
-        }));
+        pecasCandidatas = dados.artefatos;
       } else if (existente && existente.pecas && existente.pecas.length > 0) {
-        pecasFinais = existente.pecas;
+        pecasCandidatas = existente.pecas;
       }
+
+      const pecasFinais = sanitizarEClassificarPecas(pecasCandidatas, num);
 
       const processoAtualizado = {
         numeroProcesso: num,
@@ -311,7 +499,7 @@
       }
 
       if (notificar) {
-        mostrarToast(`✓ Processo nº ${num} atualizado (${pecasFinais.length} peças)`);
+        mostrarToast(`✓ Processo nº ${num} atualizado (${pecasFinais.length} peças legítimas)`);
       }
     }
 

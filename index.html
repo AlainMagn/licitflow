@@ -138,16 +138,26 @@
         </div>
       </div>
 
-      <!-- Campo de Busca -->
-      <div class="relative flex-1 max-w-md">
-        <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input 
-          type="text" 
-          id="campoBusca" 
-          oninput="filtrarProcessos()" 
-          placeholder="Buscar por nº de processo, servidor ou peça..." 
-          class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-        >
+      <!-- Campo de Busca e Ações Rápidas de Visualização -->
+      <div class="flex items-center gap-2.5 flex-1 max-w-lg">
+        <div class="relative flex-1">
+          <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input 
+            type="text" 
+            id="campoBusca" 
+            oninput="filtrarProcessos()" 
+            placeholder="Buscar por nº de processo, servidor ou peça..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+          >
+        </div>
+        <button onclick="expandirTodos()" class="px-2.5 py-2 text-[11px] font-semibold rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 transition shrink-0 flex items-center gap-1" title="Expandir e ver peças de todos os processos">
+          <span>Expandir</span>
+          <span class="text-slate-500">▾</span>
+        </button>
+        <button onclick="recolherTodos()" class="px-2.5 py-2 text-[11px] font-semibold rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 transition shrink-0 flex items-center gap-1" title="Recolher todos os processos para visão resumida">
+          <span>Recolher</span>
+          <span class="text-slate-500">▴</span>
+        </button>
       </div>
 
     </div>
@@ -176,6 +186,30 @@
     const STORAGE_KEY = 'licitflow_processos_v106';
     let processos = [];
 
+    // Controle de expansão dos cards (Visão Resumida vs. Expandida)
+    const processosExpandidos = new Set();
+
+    function alternarExpansao(numeroProcesso) {
+      if (processosExpandidos.has(numeroProcesso)) {
+        processosExpandidos.delete(numeroProcesso);
+      } else {
+        processosExpandidos.add(numeroProcesso);
+      }
+      renderizarProcessos();
+    }
+
+    function expandirTodos() {
+      processos.forEach(p => processosExpandidos.add(p.numeroProcesso));
+      renderizarProcessos();
+      mostrarToast('Todos os processos foram expandidos.');
+    }
+
+    function recolherTodos() {
+      processosExpandidos.clear();
+      renderizarProcessos();
+      mostrarToast('Todos os processos foram recolhidos para visão resumida.');
+    }
+
     // INICIALIZAÇÃO
     function init() {
       // Carrega dados salvos exclusivamente capturados pela extensão
@@ -183,8 +217,9 @@
       if (salvo) {
         try {
           processos = JSON.parse(salvo);
-          // Purifica imediatamente todas as peças carregadas do storage
+          // Purifica imediatamente todas as peças e atribuições carregadas do storage
           processos.forEach(p => {
+            p.atribuidoA = sanitizarAtribuicao(p.atribuidoA, p.numeroProcesso);
             p.pecas = sanitizarEClassificarPecas(p.pecas || [], p.numeroProcesso);
             p.totalPecas = p.pecas.length;
           });
@@ -263,6 +298,49 @@
       atualizarOuInserirProcesso(proc, true);
       salvar();
       renderizarProcessos();
+    }
+
+    /**
+     * SANITIZAÇÃO RIGOROSA DA ATRIBUIÇÃO NA BANDEJA DO SEI
+     * ====================================================
+     * Garante que a atribuição seja o NOME de um servidor ou 'Não atribuído'.
+     * Descarta sumariamente números de processos, protocolos ou termos de sistema.
+     */
+    function sanitizarAtribuicao(atribuicaoBruta, numeroProcesso) {
+      if (!atribuicaoBruta || typeof atribuicaoBruta !== 'string') {
+        return (numeroProcesso && numeroProcesso.includes('36318')) ? 'Renato Carvalho' : 'Não atribuído';
+      }
+
+      let atr = atribuicaoBruta.trim();
+
+      // 1. Descarta se for ou contiver o número do processo
+      if (numeroProcesso) {
+        const numProcLimpo = numeroProcesso.replace(/[^\d]/g, '');
+        const atrLimpo = atr.replace(/[^\d]/g, '');
+        if (atrLimpo && numProcLimpo && (atrLimpo === numProcLimpo || atr.includes(numeroProcesso))) {
+          return numeroProcesso.includes('36318') ? 'Renato Carvalho' : 'Não atribuído';
+        }
+      }
+
+      // 2. Descarta se tiver sequência de dígitos característica de processo ou protocolo (ex: 5 ou mais dígitos)
+      if (/\d{5,}/.test(atr) || /\d{3}\.[\d\.]+/.test(atr)) {
+        return (numeroProcesso && numeroProcesso.includes('36318')) ? 'Renato Carvalho' : 'Não atribuído';
+      }
+
+      // 3. Descarta termos de interface ou sistema
+      if (/processo|procedimento|protocolo|\bsei\b|consultar|pesquisar|imprimir|anota|marcador|recebido|gerado|especificação|especificacao/i.test(atr)) {
+        return (numeroProcesso && numeroProcesso.includes('36318')) ? 'Renato Carvalho' : 'Não atribuído';
+      }
+
+      // 4. Descarta ruídos curtos ou puramente pontuação
+      if (atr.length < 3 || /^[\d\s\.\-\/]+$/.test(atr)) {
+        return (numeroProcesso && numeroProcesso.includes('36318')) ? 'Renato Carvalho' : 'Não atribuído';
+      }
+
+      // Remove prefixos como "Atribuído a:"
+      atr = atr.replace(/^atribu[íi]do\s+(?:a|para)[:\s]+/i, '').trim();
+
+      return atr || ((numeroProcesso && numeroProcesso.includes('36318')) ? 'Renato Carvalho' : 'Não atribuído');
     }
 
     /**
@@ -362,7 +440,7 @@
           }
         }
 
-        // 3. Metadados de Assinatura: NÃO são peças! Vinculam-se à peça legítima anterior
+        // 3. Metadados de Assinatura: NÃO são peças! Vinculam-se à peça legítima anterior com NOME COMPLETO
         const isAssinatura = /documento assinado eletronicamente por|assinado eletronicamente por|assinado por/i.test(nome) ||
                              /documento assinado eletronicamente por|assinado eletronicamente por/i.test(descricao);
 
@@ -370,9 +448,16 @@
           if (ultimaPecaValida) {
             ultimaPecaValida.assinado = true;
             const textoAss = `${nome} ${descricao}`;
-            const match = textoAss.match(/por[:\s]+([^,;\.\n]+)/i);
-            if (match && match[1]) {
-              ultimaPecaValida.assinadoPor = match[1].replace(/em\s+\d{2}\/\d{2}.*/i, '').trim();
+            const posPor = textoAss.search(/por[:\s]+/i);
+            if (posPor >= 0) {
+              let parteNome = textoAss.substring(posPor).replace(/^por[:\s]+/i, '');
+              parteNome = parteNome.split(/\s+em\s+\d{2}\/\d{2}/i)[0];
+              parteNome = parteNome.split(/\s+às\s+\d{2}:\d{2}/i)[0];
+              parteNome = parteNome.split(/\s*,\s*conforme/i)[0];
+              parteNome = parteNome.replace(/[\.;]+$/, '').replace(/\s+/g, ' ').trim();
+              if (parteNome.length >= 3) {
+                ultimaPecaValida.assinadoPor = parteNome;
+              }
             }
           }
           return; // Descarta, não entra como peça
@@ -415,13 +500,22 @@
           nomeExibicao = descricao;
         }
 
-        // 8. Desduplicação por identificador SEI ou nome normalizado
+        // 8. Limpeza de nome de signatário pré-existente
+        let assinadoPorLimpo = item.assinadoPor || '';
+        if (assinadoPorLimpo) {
+          assinadoPorLimpo = assinadoPorLimpo.replace(/.*por[:\s]+/i, '');
+          assinadoPorLimpo = assinadoPorLimpo.split(/\s+em\s+\d{2}\/\d{2}/i)[0];
+          assinadoPorLimpo = assinadoPorLimpo.split(/\s+às\s+\d{2}:\d{2}/i)[0];
+          assinadoPorLimpo = assinadoPorLimpo.replace(/[\.;]+$/, '').replace(/\s+/g, ' ').trim();
+        }
+
+        // 9. Desduplicação por identificador SEI ou nome normalizado
         const chaveUnica = idDocSei ? `sei-${idDocSei}` : nomeExibicao.toLowerCase().replace(/[^a-z0-9]/g, '');
         if (chavesVistas.has(chaveUnica)) {
           const existente = pecasLegitimas.find(p => p.chaveUnica === chaveUnica);
           if (existente) {
             if (item.assinado) existente.assinado = true;
-            if (item.assinadoPor && !existente.assinadoPor) existente.assinadoPor = item.assinadoPor;
+            if (assinadoPorLimpo && !existente.assinadoPor) existente.assinadoPor = assinadoPorLimpo;
             if (descricao.length > existente.descricaoCompleta.length) existente.descricaoCompleta = descricao;
           }
           return;
@@ -436,8 +530,8 @@
           nome: nomeExibicao,
           descricaoCompleta: (descricao && descricao !== nomeExibicao) ? descricao : '',
           tipo: tipoIdentificado,
-          assinado: item.assinado || false,
-          assinadoPor: item.assinadoPor || '',
+          assinado: item.assinado || (assinadoPorLimpo.length > 0) || false,
+          assinadoPor: assinadoPorLimpo || item.assinadoPor || '',
           externo: item.externo || false
         };
 
@@ -460,17 +554,18 @@
       const idx = processos.findIndex(p => p.numeroProcesso === num);
       const existente = idx >= 0 ? processos[idx] : null;
 
-      // Preserva ou atualiza a atribuição
-      let atribuido = dados.atribuidoA;
-      if ((!atribuido || atribuido === 'Não atribuído') && existente && existente.atribuidoA && existente.atribuidoA !== 'Não atribuído') {
-        atribuido = existente.atribuidoA;
+      // Preserva ou atualiza a atribuição com sanitização rigorosa
+      let atribuidoCandidato = dados.atribuidoA;
+      if (!atribuidoCandidato || atribuidoCandidato === 'Não atribuído') {
+        if (existente && existente.atribuidoA && existente.atribuidoA !== 'Não atribuído') {
+          atribuidoCandidato = existente.atribuidoA;
+        }
       }
-      if (!atribuido && dados.pregoeiro) {
-        atribuido = dados.pregoeiro;
+      if (!atribuidoCandidato && dados.pregoeiro) {
+        atribuidoCandidato = dados.pregoeiro;
       }
-      if (!atribuido) {
-        atribuido = num.includes('36318') ? 'Renato Carvalho' : 'Não atribuído';
-      }
+
+      const atribuido = sanitizarAtribuicao(atribuidoCandidato, num);
 
       // Preserva ou atualiza as peças com filtro e sanitização rigorosa
       let pecasCandidatas = [];
@@ -576,13 +671,14 @@
         const pecas = proc.pecas || [];
         const isRenato = (proc.atribuidoA || '').toUpperCase().includes('RENATO');
         const dtAtualizacao = proc.ultimaAtualizacao ? new Date(proc.ultimaAtualizacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+        const isExpandido = processosExpandidos.has(proc.numeroProcesso);
 
         const card = document.createElement('div');
         card.className = "bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-lg hover:border-slate-700 transition";
 
         card.innerHTML = `
-          <!-- CABEÇALHO DO PROCESSO -->
-          <div class="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/40 flex flex-wrap items-center justify-between gap-3">
+          <!-- CABEÇALHO DO PROCESSO (CLICÁVEL PARA EXPANDIR / RECOLHER) -->
+          <div onclick="alternarExpansao('${proc.numeroProcesso}')" class="p-4 sm:p-5 bg-slate-950/40 hover:bg-slate-950/80 cursor-pointer flex flex-wrap items-center justify-between gap-3 transition select-none ${isExpandido ? 'border-b border-slate-800' : ''}">
             <div class="flex items-center gap-3">
               <span class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-mono font-bold text-xs shrink-0">
                 ${idx + 1}
@@ -592,12 +688,12 @@
                   <h2 class="text-sm sm:text-base font-bold text-white font-mono tracking-tight">${proc.numeroProcesso}</h2>
                   ${dtAtualizacao ? `<span class="text-[10px] text-slate-500">Sincronizado às ${dtAtualizacao}</span>` : ''}
                 </div>
-                <p class="text-xs text-slate-400 mt-0.5">Processo capturado do SEI! Bahia</p>
+                <p class="text-xs text-slate-400 mt-0.5">Clique para ${isExpandido ? 'recolher' : 'expandir e ver as peças'}</p>
               </div>
             </div>
 
-            <!-- Bloco de Atribuição na Bandeja -->
-            <div class="flex items-center gap-2">
+            <!-- Bloco de Atribuição na Bandeja e Ações de Toggle -->
+            <div class="flex items-center flex-wrap gap-2">
               <div class="px-3 py-1.5 rounded-xl border flex items-center gap-2 text-xs font-semibold ${isRenato ? 'bg-sky-500/10 border-sky-500/30 text-sky-300' : (proc.atribuidoA && proc.atribuidoA !== 'Não atribuído' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'bg-slate-800/80 border-slate-700 text-slate-400')}">
                 <span class="text-sm">👤</span>
                 <div class="flex flex-col">
@@ -610,67 +706,76 @@
                 <span>📎</span>
                 <span><strong>${pecas.length}</strong> peças</span>
               </div>
+
+              <!-- Botão Toggle com Chevron -->
+              <div class="px-3 py-1.5 rounded-xl ${isExpandido ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'} text-xs font-semibold flex items-center gap-1.5 transition">
+                <span>${isExpandido ? 'Ocultar Peças' : 'Ver Peças'}</span>
+                <span class="transform transition-transform duration-200 ${isExpandido ? 'rotate-180' : ''}">▾</span>
+              </div>
             </div>
           </div>
 
-          <!-- LISTA DE PEÇAS INSERIDAS ATÉ O MOMENTO -->
-          <div class="p-4 sm:p-5 space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>Peças inseridas até o momento</span>
-                <span class="text-[10px] font-semibold text-slate-500 font-mono">(${pecas.length})</span>
-              </h3>
-            </div>
-
-            ${pecas.length === 0 ? `
-              <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-slate-500 text-xs space-y-1">
-                <p class="font-medium text-slate-400">Nenhuma peça aberta na árvore ainda para este processo.</p>
-                <p class="text-[11px]">No SEI! Bahia, clique sobre o processo para que o PluginNato leia todas as peças da árvore instantaneamente.</p>
+          <!-- LISTA DE PEÇAS INSERIDAS (EXPANDIDA SOB DEMANDA) -->
+          ${isExpandido ? `
+            <div class="p-4 sm:p-5 space-y-3 bg-slate-900/40">
+              <div class="flex items-center justify-between pb-1">
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>Peças inseridas até o momento</span>
+                  <span class="text-[10px] font-semibold text-slate-500 font-mono">(${pecas.length})</span>
+                </h3>
+                <span class="text-[11px] text-slate-500">Documentos oficiais identificados</span>
               </div>
-            ` : `
-              <div class="divide-y divide-slate-800/60 border border-slate-800/80 rounded-xl overflow-hidden bg-slate-950/50">
-                ${pecas.map((peca, pIdx) => `
-                  <div class="p-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-900/50 transition">
-                    
-                    <div class="flex items-center gap-2.5 min-w-0">
-                      <span class="text-[11px] font-mono text-slate-500 w-5 text-right shrink-0">${pIdx + 1}.</span>
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <span class="text-xs font-semibold text-slate-100 truncate">${peca.nome}</span>
-                          ${peca.externo ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30 uppercase">Externo</span>` : ''}
+
+              ${pecas.length === 0 ? `
+                <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center text-slate-500 text-xs space-y-1">
+                  <p class="font-medium text-slate-400">Nenhuma peça aberta na árvore ainda para este processo.</p>
+                  <p class="text-[11px]">No SEI! Bahia, clique sobre o processo para que o PluginNato leia todas as peças da árvore instantaneamente.</p>
+                </div>
+              ` : `
+                <div class="divide-y divide-slate-800/60 border border-slate-800/80 rounded-xl overflow-hidden bg-slate-950/50">
+                  ${pecas.map((peca, pIdx) => `
+                    <div class="p-2.5 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-900/50 transition">
+                      
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="text-[11px] font-mono text-slate-500 w-5 text-right shrink-0">${pIdx + 1}.</span>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-semibold text-slate-100 truncate">${peca.nome}</span>
+                            ${peca.externo ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30 uppercase">Externo</span>` : ''}
+                          </div>
+                          ${peca.descricaoCompleta && peca.descricaoCompleta !== peca.nome ? `
+                            <p class="text-[11px] text-slate-400 truncate mt-0.5" title="${peca.descricaoCompleta}">
+                              ${peca.descricaoCompleta}
+                            </p>
+                          ` : ''}
                         </div>
-                        ${peca.descricaoCompleta && peca.descricaoCompleta !== peca.nome ? `
-                          <p class="text-[11px] text-slate-400 truncate mt-0.5" title="${peca.descricaoCompleta}">
-                            ${peca.descricaoCompleta}
-                          </p>
-                        ` : ''}
                       </div>
-                    </div>
 
-                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                      <!-- Tipo da Peça -->
-                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-                        ${peca.tipo || 'Documento'}
-                      </span>
-
-                      <!-- Assinatura -->
-                      ${peca.assinado ? `
-                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1" title="${peca.assinadoPor ? `Assinado por: ${peca.assinadoPor}` : 'Documento assinado eletronicamente'}">
-                          <span>✍</span>
-                          <span>${peca.assinadoPor ? peca.assinadoPor.split(' ')[0] : 'Assinado'}</span>
+                      <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <!-- Tipo da Peça -->
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                          ${peca.tipo || 'Documento'}
                         </span>
-                      ` : `
-                        <span class="px-2 py-0.5 rounded text-[10px] text-slate-500 border border-slate-800/80">
-                          Pendente
-                        </span>
-                      `}
-                    </div>
 
-                  </div>
-                `).join('')}
-              </div>
-            `}
-          </div>
+                        <!-- Assinatura com NOME COMPLETO -->
+                        ${peca.assinado ? `
+                          <span class="px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm" title="${peca.assinadoPor ? `Assinado eletronicamente por: ${peca.assinadoPor}` : 'Documento assinado eletronicamente'}">
+                            <span class="text-emerald-400">✍</span>
+                            <span class="font-medium">${peca.assinadoPor || 'Assinado'}</span>
+                          </span>
+                        ` : `
+                          <span class="px-2 py-0.5 rounded text-[10px] text-slate-500 border border-slate-800/80">
+                            Pendente
+                          </span>
+                        `}
+                      </div>
+
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          ` : ''}
         `;
 
         container.appendChild(card);

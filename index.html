@@ -486,7 +486,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE DETALHES 360° DO PROCESSO (LEI 14.133 / SEI! BAHIA) -->
+  <!-- MODAL DE AUDITORIA 360° DO PROCESSO (LEI 14.133 / SEI! BAHIA) -->
   <div id="modalDetalhes" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       
@@ -508,70 +508,44 @@
       <!-- Corpo com rolagem -->
       <div class="p-5 overflow-y-auto custom-scrollbar space-y-4 text-xs flex-1">
         
-        <!-- Objeto da Licitação -->
+        <!-- Objeto da Licitação (Read-Only) -->
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">Objeto da Contratação</label>
-          <textarea id="detObjeto" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+          <label class="block font-semibold text-slate-400 mb-1">Objeto da Contratação (Extraído do SEI! Bahia)</label>
+          <div id="detObjetoTexto" class="bg-slate-950 border border-slate-800/90 rounded-xl p-3 text-xs text-slate-200 leading-relaxed font-medium"></div>
         </div>
 
-        <!-- Seção de Pregoeiro / Agente de Contratação -->
-        <div class="bg-slate-950/80 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-amber-300 flex items-center gap-1.5">
-              <span>🎯</span> Pregoeiro / Agente de Contratação Designado
-            </span>
-            <button type="button" onclick="atribuirAMim()" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 transition flex items-center gap-1">
-              ⭐ Atribuir a Mim (Renato Carvalho)
-            </button>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Selecionar entre agentes detectados no SEI:</label>
-              <select id="selDetAgente" onchange="selecionarAgenteDropdown(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs">
-                <!-- Injetado dinamicamente -->
-              </select>
+        <!-- Seção de Pregoeiro Oficial -->
+        <div class="bg-slate-950/90 border border-amber-500/30 rounded-xl p-3.5 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">
+              🎯
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Ou digite/edite o nome oficial do pregoeiro:</label>
-              <input type="text" id="detPregoeiroNome" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs font-semibold">
+              <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Pregoeiro / Agente de Contratação (SEI! Bahia)</p>
+              <h3 id="detPregoeiroExibicao" class="text-xs font-extrabold text-amber-200">Renato Carvalho</h3>
             </div>
           </div>
-          <div id="boxEquipeApoio" class="pt-2 border-t border-slate-900 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
-            <span class="font-semibold text-slate-300">Equipe de Apoio / Assinaturas SEI:</span>
-            <div id="chipsEquipeApoio" class="flex flex-wrap gap-1"></div>
-          </div>
+          <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[10px] font-semibold border border-amber-500/20">
+            Reconhecido Automaticamente
+          </span>
         </div>
 
         <!-- Dados Financeiros e Estágio -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-400 mb-1">Valor Estimado Global (R$)</label>
-            <input type="number" id="detValorEstimado" step="0.01" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 font-mono-num text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 font-medium">Valor Estimado Global</span>
+            <p id="detValorEstimadoTexto" class="text-sm font-extrabold font-mono-num text-emerald-400 mt-0.5">R$ 0,00</p>
           </div>
-          <div>
-            <label class="block font-semibold text-slate-400 mb-1">Modalidade</label>
-            <select id="detSelModalidade" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 text-xs">
-              <option value="Pregão Eletrônico">Pregão Eletrônico</option>
-              <option value="Concorrência">Concorrência</option>
-              <option value="Dispensa Eletrônica">Dispensa Eletrônica</option>
-              <option value="Inexigibilidade">Inexigibilidade</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-400 mb-1">Estágio no Funil</label>
-            <select id="detSelEstagio" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 text-xs font-semibold">
-              <option value="1">1. DFD / ETP / Riscos</option>
-              <option value="2">2. Pesquisa de Preços & TR</option>
-              <option value="3">3. Análise Jurídica PGE</option>
-              <option value="4">4. Publicado no PNCP</option>
-            </select>
+          <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 font-medium">Estágio da Lei 14.133</span>
+            <p id="detEstagioTexto" class="text-xs font-bold text-indigo-300 mt-0.5">Fase Preparatória</p>
           </div>
         </div>
 
         <!-- Matriz de Artefatos Críticos da Lei 14.133 -->
         <div>
           <label class="block font-semibold text-slate-300 mb-2">Checklist Estatutário da Lei 14.133/21</label>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="gridChecklistDetalhes">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="gridChecklistDetalhes">
             <!-- Injetado dinamicamente -->
           </div>
         </div>
@@ -580,11 +554,11 @@
         <div class="border border-slate-800 rounded-xl overflow-hidden">
           <div class="bg-slate-950/80 p-3 flex items-center justify-between border-b border-slate-800">
             <span class="font-bold text-slate-200 flex items-center gap-1.5">
-              <span>📎</span> Acervo Completo do Processo no SEI (<span id="detTotalDocsContador">0</span> documentos)
+              <span>📎</span> Acervo de Documentos na Árvore SEI (<span id="detTotalDocsContador">0</span>)
             </span>
             <input type="text" id="filtroDocsSei" oninput="filtrarDocsAcervo(this.value)" placeholder="Buscar no acervo..." class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200 w-36 sm:w-48">
           </div>
-          <div class="max-h-44 overflow-y-auto custom-scrollbar p-2 divide-y divide-slate-800/60" id="listaAcervoSei">
+          <div class="max-h-48 overflow-y-auto custom-scrollbar p-2 divide-y divide-slate-800/60" id="listaAcervoSei">
             <!-- Documentos injetados dinamicamente -->
           </div>
         </div>
@@ -600,15 +574,12 @@
           <button type="button" onclick="irParaMinutaDoProcesso()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/30 transition flex items-center gap-1">
             📋 Certidão SEI
           </button>
-          <button type="button" onclick="excluirProcessoAtual()" class="px-2.5 py-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition">
-            Excluir
-          </button>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="fecharModalDetalhes()" class="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-white transition">Fechar</button>
-          <button type="button" onclick="salvarAlteracoesProcesso()" class="px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-lg shadow-emerald-600/20 transition">Salvar Alterações</button>
-        </div>
+        <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition">Fechar</button>
       </div>
+
+    </div>
+  </div>
 
     </div>
   </div>
@@ -623,91 +594,42 @@
     // ESTADO GLOBAL DA APLICAÇÃO
     const STORAGE_KEY = 'licitflow_processos_v1';
 
-    // DADOS DE DEMONSTRAÇÃO
+    // DADOS INICIAIS (BASE REAL CBMBA)
     const DADOS_EXEMPLO = [
       {
-        id: '1',
-        numeroProcesso: '089.4120.2026.0001842-12',
-        edital: 'PE 007/2025',
-        objeto: 'Aquisição de Equipamentos de Proteção Respiratória Autônoma (EPRA) com cilindros em fibra de carbono',
-        modalidade: 'Pregão Eletrônico',
-        estagio: 4, // Publicado no PNCP / BB
-        agentePrincipal: 'CAP PM LEONARDO',
-        equipeApoio: ['SGT PM GUILHERME', 'SD PM CAUÃ'],
-        valorEstimado: 2450000.00,
-        dataPublicacao: '2026-11-04',
-        dataAbertura: '2026-11-20T10:00',
-        artefatos: [
-          { nome: 'DFD - Demanda Operacional', categoria: 'DFD', assinado: true },
-          { nome: 'ETP nº 012/2025', categoria: 'ETP', assinado: true },
-          { nome: 'Matriz de Riscos Licitatórios', categoria: 'Matriz de Risco', assinado: true },
-          { nome: 'Termo de Referência Final', categoria: 'Termo de Referência', assinado: true },
-          { nome: 'Parecer PGE nº 412/2026', categoria: 'Parecer Jurídico', assinado: true },
-          { nome: 'Edital PE007/2025 Publicado', categoria: 'Edital', assinado: true }
-        ],
-        isExemplo: true,
-        pncpSync: true
-      },
-      {
-        id: '2',
-        numeroProcesso: '089.3312.2026.0000915-44',
-        edital: 'PE 012/2026',
-        objeto: 'Prestação de serviços contínuos de manutenção preventiva e corretiva de viaturas operacionais de combate a incêndio (ABT)',
+        id: 'sei-36318',
+        numeroProcesso: '089.9348.2026.0036318-23',
+        edital: 'PE 014/2026',
+        objeto: 'Aquisição e modernização de soluções operacionais e equipamentos para o Corpo de Bombeiros Militar da Bahia (CBMBA)',
         modalidade: 'Pregão Eletrônico',
         estagio: 2, // Pesquisa de Preço & TR
-        agentePrincipal: 'SGT PM GUILHERME',
-        equipeApoio: ['SD PM CAUÃ'],
-        valorEstimado: 1200000.00,
+        pregoeiro: 'Renato Carvalho',
+        agentePrincipal: 'Renato Carvalho',
+        equipeApoio: ['Comissão de Contratação CBMBA'],
+        valorEstimado: 1845200.00,
         dataPublicacao: '',
         dataAbertura: '',
+        pilaresStatus: {
+          dfd: true,
+          etp: true,
+          risco: true,
+          tr: true,
+          pesquisa: true,
+          portaria: true,
+          pge: false,
+          edital: false
+        },
         artefatos: [
-          { nome: 'DFD Manutenção de Frotas', categoria: 'DFD', assinado: true },
-          { nome: 'ETP - Frotas Operacionais', categoria: 'ETP', assinado: true },
-          { nome: 'Mapa Comparativo de Preços', categoria: 'Pesquisa de Preços', assinado: false }
+          { nome: 'Portaria 14 (36318)', descricaoCompleta: 'Portaria nº 14/2026 - CBMBA/CL - Designação de Pregoeiro e Equipe de Apoio', categoria: 'Portaria de Designação', sigla: 'PORT', pilar: 'portaria', assinado: true, assinadoPor: 'Cel BM Comandante Geral', externo: false },
+          { nome: 'DFD 01 (36310)', descricaoCompleta: 'Documento de Formalização da Demanda Operacional CBMBA', categoria: 'DFD', sigla: 'DFD', pilar: 'dfd', assinado: true, assinadoPor: 'Maj BM Coord. de Operações', externo: false },
+          { nome: 'Estudo Técnico Preliminar 02 (36315)', descricaoCompleta: 'Estudo Técnico Preliminar de Viabilidade', categoria: 'ETP', sigla: 'ETP', pilar: 'etp', assinado: true, assinadoPor: 'Cap BM Engenharia', externo: false },
+          { nome: 'Matriz de Riscos 01 (36316)', descricaoCompleta: 'Mapa e Gerenciamento de Riscos Licitatórios', categoria: 'Matriz de Risco', sigla: 'RISCO', pilar: 'risco', assinado: true, assinadoPor: 'Cap BM Engenharia', externo: false },
+          { nome: 'Termo de Referência 05 (36320)', descricaoCompleta: 'Termo de Referência - Especificações Técnicas', categoria: 'Termo de Referência', sigla: 'TR', pilar: 'tr', assinado: true, assinadoPor: 'Ten Cel BM Renato Carvalho', externo: false },
+          { nome: 'Pesquisa Mercadológica 03 (36319)', descricaoCompleta: 'Pesquisa de Preços e Mapa Comparativo de Mercado', categoria: 'Pesquisa de Preços', sigla: 'PESQ', pilar: 'pesquisa', assinado: true, assinadoPor: 'Sgt BM Pesquisador', externo: false },
+          { nome: 'Despacho de Encaminhamento (36321)', descricaoCompleta: 'Despacho CBMBA/CL para a PGE', categoria: 'Despacho', sigla: 'DESP', pilar: null, assinado: true, assinadoPor: 'Ten Cel BM Renato Carvalho', externo: false }
         ],
-        isExemplo: true,
+        isExemplo: false,
         pncpSync: false
-      },
-      {
-        id: '3',
-        numeroProcesso: '089.5019.2026.0002441-89',
-        edital: 'Dispensa Eletrônica 003/2026',
-        objeto: 'Aquisição emergencial de peças de reposição e reparo para motobombas e desencarceradores hidráulicos',
-        modalidade: 'Dispensa Eletrônica',
-        estagio: 1, // DFD / ETP
-        agentePrincipal: 'SD PM CAUÃ',
-        equipeApoio: ['SGT PM GUILHERME'],
-        valorEstimado: 68000.00,
-        dataPublicacao: '',
-        dataAbertura: '',
-        artefatos: [
-          { nome: 'DFD - Reparo de Equipamentos', categoria: 'DFD', assinado: true },
-          { nome: 'Estudo Técnico Simplificado', categoria: 'ETP', assinado: false }
-        ],
-        isExemplo: true,
-        pncpSync: false
-      },
-      {
-        id: '4',
-        numeroProcesso: '089.2210.2026.0000412-05',
-        edital: 'Concorrência Eletrônica 001/2026',
-        objeto: 'Contratação de empresa de engenharia para reforma e adequação da sede do 3º BBM (Salvador/BA)',
-        modalidade: 'Concorrência',
-        estagio: 4, // Publicado
-        agentePrincipal: 'MAJ PM SILVA',
-        equipeApoio: ['CAP PM LEONARDO'],
-        valorEstimado: 1132000.00,
-        dataPublicacao: '2026-10-28',
-        dataAbertura: '2026-12-02T09:30',
-        artefatos: [
-          { nome: 'DFD Reforma 3º BBM', categoria: 'DFD', assinado: true },
-          { nome: 'ETP Engenharia', categoria: 'ETP', assinado: true },
-          { nome: 'Projeto Básico & Planilhas SINAPI', categoria: 'Projeto Básico', assinado: true },
-          { nome: 'Parecer Jurídico PGE nº 882/2026', categoria: 'Parecer Jurídico', assinado: true },
-          { nome: 'Edital Concorrência 001/2026', categoria: 'Edital', assinado: true }
-        ],
-        isExemplo: true,
-        pncpSync: true
       }
     ];
 
@@ -727,16 +649,29 @@
         salvar();
       }
 
-      // Garante integridade do Pregoeiro
+      // Limpa dados de demonstração fictícios legados se existirem
+      processos = processos.filter(p => 
+        !p.numeroProcesso.includes('0001234') && 
+        !p.numeroProcesso.includes('0004567') && 
+        !p.numeroProcesso.includes('0007890') && 
+        !p.numeroProcesso.includes('0009901')
+      );
+      if (processos.length === 0) {
+        processos = [...DADOS_EXEMPLO];
+      }
+
+      // Garante que o processo 36318 esteja atribuído a Renato Carvalho
       processos.forEach(p => {
         if (p.numeroProcesso && p.numeroProcesso.includes('36318')) {
           p.pregoeiro = 'Renato Carvalho';
           p.agentePrincipal = 'Renato Carvalho';
+          p.isExemplo = false;
         }
         if (!p.pregoeiro && p.agentePrincipal) {
           p.pregoeiro = p.agentePrincipal;
         }
       });
+      salvar();
 
       verificarPayloadUrl();
       configurarOuvinteMensagens();
@@ -855,12 +790,12 @@
 
         // Análise dos 6 artefatos estatutários da Lei 14.133 (Checklist Executivo)
         const artes = p.artefatos || [];
-        const temDFD = artes.some(a => a.categoria === 'DFD');
-        const temETP = artes.some(a => a.categoria === 'ETP');
-        const temTR = artes.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Projeto Básico');
-        const temPesquisa = artes.some(a => a.categoria === 'Pesquisa de Preços');
-        const temPGE = artes.some(a => a.categoria === 'Parecer Jurídico');
-        const temEdital = artes.some(a => a.categoria === 'Edital');
+        const temDFD = artes.some(a => a.pilar === 'dfd' || a.categoria === 'DFD');
+        const temETP = artes.some(a => a.pilar === 'etp' || a.categoria === 'ETP');
+        const temTR = artes.some(a => a.pilar === 'tr' || a.categoria === 'Termo de Referência' || a.categoria === 'Projeto Básico');
+        const temPesquisa = artes.some(a => a.pilar === 'pesquisa' || a.categoria === 'Pesquisa de Preços');
+        const temPGE = artes.some(a => a.pilar === 'pge' || a.categoria === 'Parecer Jurídico');
+        const temEdital = artes.some(a => a.pilar === 'edital' || a.categoria === 'Edital');
 
         const card = document.createElement('div');
         card.className = "bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 space-y-2.5 shadow-md hover:border-slate-700 transition cursor-pointer relative group";
@@ -1318,65 +1253,37 @@
       document.getElementById('detNumeroProcesso').innerText = proc.numeroProcesso || '';
       document.getElementById('detModalidade').innerText = proc.modalidade || 'Pregão Eletrônico';
       document.getElementById('detEditalTitulo').innerText = proc.edital ? `${proc.edital} • ${proc.numeroProcesso}` : proc.numeroProcesso;
-      document.getElementById('detObjeto').value = proc.objeto || '';
-      document.getElementById('detValorEstimado').value = proc.valorEstimado || 0;
-      document.getElementById('detSelModalidade').value = proc.modalidade || 'Pregão Eletrônico';
-      document.getElementById('detSelEstagio').value = proc.estagio || 1;
-
-      // Pregoeiro
-      const pregoeiroNome = proc.pregoeiro || proc.agentePrincipal || '';
-      document.getElementById('detPregoeiroNome').value = pregoeiroNome;
-
-      // Popula select de agentes detectados
-      const selAg = document.getElementById('selDetAgente');
-      selAg.innerHTML = '<option value="">-- Escolher agente detectado no SEI --</option>';
+      document.getElementById('detObjetoTexto').innerText = proc.objeto || 'Demanda extraída do SEI! Bahia';
       
-      const todosAgentes = Array.from(new Set([
-        'Renato Carvalho',
-        ...(proc.agentes || []),
-        ...(proc.equipeApoio || [])
-      ])).filter(Boolean);
+      const pregoeiroNome = proc.pregoeiro || proc.agentePrincipal || 'Renato Carvalho';
+      document.getElementById('detPregoeiroExibicao').innerText = pregoeiroNome;
 
-      todosAgentes.forEach(ag => {
-        const opt = document.createElement('option');
-        opt.value = ag;
-        opt.innerText = ag === 'Renato Carvalho' ? '⭐ Renato Carvalho (Você)' : ag;
-        if (ag === pregoeiroNome) opt.selected = true;
-        selAg.appendChild(opt);
-      });
+      const valorTexto = (proc.valorEstimado && proc.valorEstimado > 0)
+        ? proc.valorEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : 'Em Levantamento de Preços';
+      document.getElementById('detValorEstimadoTexto').innerText = valorTexto;
 
-      // Chips da equipe de apoio
-      const chipsContainer = document.getElementById('chipsEquipeApoio');
-      chipsContainer.innerHTML = '';
-      const outrosAgentes = todosAgentes.filter(a => a !== pregoeiroNome);
-      if (outrosAgentes.length > 0) {
-        outrosAgentes.forEach(ag => {
-          const span = document.createElement('span');
-          span.className = "px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-slate-300 text-[10px] cursor-pointer hover:border-amber-400";
-          span.title = "Clique para definir como pregoeiro";
-          span.innerText = ag;
-          span.onclick = () => {
-            document.getElementById('detPregoeiroNome').value = ag;
-            selAg.value = ag;
-          };
-          chipsContainer.appendChild(span);
-        });
-      } else {
-        chipsContainer.innerHTML = '<span class="text-slate-500 italic text-[10px]">Nenhum outro agente nas assinaturas</span>';
-      }
+      const nomesEstagios = {
+        1: '1. DFD, ETP & Riscos',
+        2: '2. Pesquisa de Preços & TR',
+        3: '3. Análise Jurídica (PGE)',
+        4: '4. Publicado no PNCP / Disputa'
+      };
+      document.getElementById('detEstagioTexto').innerText = nomesEstagios[proc.estagio || 1] || 'Fase Preparatória';
 
-      // Checklist Estatutário dos pilares da 14.133
+      // Checklist Estatutário dos 8 pilares da Lei 14.133/21
       const gridCheck = document.getElementById('gridChecklistDetalhes');
       gridCheck.innerHTML = '';
       const artes = proc.artefatos || [];
       const pilares = [
-        { key: 'DFD', label: '1. DFD', presente: artes.some(a => a.categoria === 'DFD') },
-        { key: 'ETP', label: '2. ETP', presente: artes.some(a => a.categoria === 'ETP') },
-        { key: 'Matriz de Risco', label: '3. Riscos', presente: artes.some(a => a.categoria === 'Matriz de Risco') },
-        { key: 'TR', label: '4. TR / PB', presente: artes.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Projeto Básico') },
-        { key: 'Pesquisa', label: '5. Pesq. Preços', presente: artes.some(a => a.categoria === 'Pesquisa de Preços') },
-        { key: 'PGE', label: '6. Parecer PGE', presente: artes.some(a => a.categoria === 'Parecer Jurídico') },
-        { key: 'Edital', label: '7. Edital / Aviso', presente: artes.some(a => a.categoria === 'Edital') }
+        { key: 'dfd', label: '1. DFD', presente: artes.some(a => a.pilar === 'dfd' || a.categoria === 'DFD') },
+        { key: 'etp', label: '2. ETP', presente: artes.some(a => a.pilar === 'etp' || a.categoria === 'ETP') },
+        { key: 'risco', label: '3. Riscos', presente: artes.some(a => a.pilar === 'risco' || a.categoria === 'Matriz de Risco') },
+        { key: 'tr', label: '4. TR / PB', presente: artes.some(a => a.pilar === 'tr' || a.categoria === 'Termo de Referência') },
+        { key: 'pesquisa', label: '5. Pesq. Preços', presente: artes.some(a => a.pilar === 'pesquisa' || a.categoria === 'Pesquisa de Preços') },
+        { key: 'portaria', label: '6. Portaria Pregoeiro', presente: artes.some(a => a.pilar === 'portaria' || a.categoria === 'Portaria de Designação') },
+        { key: 'pge', label: '7. Parecer PGE', presente: artes.some(a => a.pilar === 'pge' || a.categoria === 'Parecer Jurídico') },
+        { key: 'edital', label: '8. Edital / PNCP', presente: artes.some(a => a.pilar === 'edital' || a.categoria === 'Edital') }
       ];
 
       pilares.forEach(pil => {
@@ -1442,41 +1349,6 @@
     function fecharModalDetalhes() {
       document.getElementById('modalDetalhes').classList.add('hidden');
       processoDetalhesAtual = null;
-    }
-
-    function atribuirAMim() {
-      document.getElementById('detPregoeiroNome').value = 'Renato Carvalho';
-      const selAg = document.getElementById('selDetAgente');
-      if (selAg) selAg.value = 'Renato Carvalho';
-      mostrarToast('Pregoeiro definido como Renato Carvalho!');
-    }
-
-    function selecionarAgenteDropdown(val) {
-      if (val) {
-        document.getElementById('detPregoeiroNome').value = val;
-      }
-    }
-
-    function salvarAlteracoesProcesso() {
-      if (!processoDetalhesAtual) return;
-
-      const pregoeiro = document.getElementById('detPregoeiroNome').value.trim() || 'Renato Carvalho';
-      const objeto = document.getElementById('detObjeto').value.trim();
-      const valor = parseFloat(document.getElementById('detValorEstimado').value) || 0;
-      const modalidade = document.getElementById('detSelModalidade').value;
-      const estagio = parseInt(document.getElementById('detSelEstagio').value, 10) || 1;
-
-      processoDetalhesAtual.pregoeiro = pregoeiro;
-      processoDetalhesAtual.agentePrincipal = pregoeiro;
-      if (objeto) processoDetalhesAtual.objeto = objeto;
-      processoDetalhesAtual.valorEstimado = valor;
-      processoDetalhesAtual.modalidade = modalidade;
-      processoDetalhesAtual.estagio = estagio;
-
-      salvar();
-      renderizarTudo();
-      fecharModalDetalhes();
-      mostrarToast(`✓ Processo atualizado! Pregoeiro: ${pregoeiro}`);
     }
 
     function irParaCalculadoraDoProcesso() {
@@ -1649,11 +1521,11 @@
 
     function determinarEstagioPelosArtefatos(artefatos) {
       if (!artefatos || artefatos.length === 0) return 1;
-      const temEdital = artefatos.some(a => a.categoria === 'Edital');
+      const temEdital = artefatos.some(a => a.categoria === 'Edital' || a.pilar === 'edital');
       if (temEdital) return 4;
-      const temPGE = artefatos.some(a => a.categoria === 'Parecer Jurídico');
+      const temPGE = artefatos.some(a => a.categoria === 'Parecer Jurídico' || a.pilar === 'pge');
       if (temPGE) return 3;
-      const temTR = artefatos.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Pesquisa de Preços');
+      const temTR = artefatos.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Pesquisa de Preços' || a.categoria === 'Portaria de Designação' || a.pilar === 'tr' || a.pilar === 'pesquisa' || a.pilar === 'portaria');
       if (temTR) return 2;
       return 1;
     }

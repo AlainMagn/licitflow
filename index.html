@@ -486,6 +486,133 @@
     </div>
   </div>
 
+  <!-- MODAL DE DETALHES 360° DO PROCESSO (LEI 14.133 / SEI! BAHIA) -->
+  <div id="modalDetalhes" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Cabeçalho do Modal -->
+      <div class="p-5 border-b border-slate-800 flex items-start justify-between bg-slate-950/70">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" id="detModalidade">Pregão Eletrônico</span>
+            <span class="font-mono-num text-xs font-bold text-slate-300" id="detNumeroProcesso">089.0000.2026...</span>
+            <button onclick="copiarTexto(document.getElementById('detNumeroProcesso').innerText)" class="text-slate-400 hover:text-white" title="Copiar número do processo">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+          </div>
+          <h2 class="text-sm font-bold text-white mt-1.5 line-clamp-1" id="detEditalTitulo">Processo SEI</h2>
+        </div>
+        <button onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg leading-none">✕</button>
+      </div>
+
+      <!-- Corpo com rolagem -->
+      <div class="p-5 overflow-y-auto custom-scrollbar space-y-4 text-xs flex-1">
+        
+        <!-- Objeto da Licitação -->
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Objeto da Contratação</label>
+          <textarea id="detObjeto" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+
+        <!-- Seção de Pregoeiro / Agente de Contratação -->
+        <div class="bg-slate-950/80 border border-amber-500/30 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🎯</span> Pregoeiro / Agente de Contratação Designado
+            </span>
+            <button type="button" onclick="atribuirAMim()" class="px-2.5 py-1 text-[11px] font-semibold rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 transition flex items-center gap-1">
+              ⭐ Atribuir a Mim (Renato Carvalho)
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Selecionar entre agentes detectados no SEI:</label>
+              <select id="selDetAgente" onchange="selecionarAgenteDropdown(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs">
+                <!-- Injetado dinamicamente -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Ou digite/edite o nome oficial do pregoeiro:</label>
+              <input type="text" id="detPregoeiroNome" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs font-semibold">
+            </div>
+          </div>
+          <div id="boxEquipeApoio" class="pt-2 border-t border-slate-900 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400">
+            <span class="font-semibold text-slate-300">Equipe de Apoio / Assinaturas SEI:</span>
+            <div id="chipsEquipeApoio" class="flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+
+        <!-- Dados Financeiros e Estágio -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-400 mb-1">Valor Estimado Global (R$)</label>
+            <input type="number" id="detValorEstimado" step="0.01" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 font-mono-num text-xs">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-400 mb-1">Modalidade</label>
+            <select id="detSelModalidade" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 text-xs">
+              <option value="Pregão Eletrônico">Pregão Eletrônico</option>
+              <option value="Concorrência">Concorrência</option>
+              <option value="Dispensa Eletrônica">Dispensa Eletrônica</option>
+              <option value="Inexigibilidade">Inexigibilidade</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-400 mb-1">Estágio no Funil</label>
+            <select id="detSelEstagio" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 text-xs font-semibold">
+              <option value="1">1. DFD / ETP / Riscos</option>
+              <option value="2">2. Pesquisa de Preços & TR</option>
+              <option value="3">3. Análise Jurídica PGE</option>
+              <option value="4">4. Publicado no PNCP</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Matriz de Artefatos Críticos da Lei 14.133 -->
+        <div>
+          <label class="block font-semibold text-slate-300 mb-2">Checklist Estatutário da Lei 14.133/21</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="gridChecklistDetalhes">
+            <!-- Injetado dinamicamente -->
+          </div>
+        </div>
+
+        <!-- Acervo Completo de Documentos da Árvore SEI -->
+        <div class="border border-slate-800 rounded-xl overflow-hidden">
+          <div class="bg-slate-950/80 p-3 flex items-center justify-between border-b border-slate-800">
+            <span class="font-bold text-slate-200 flex items-center gap-1.5">
+              <span>📎</span> Acervo Completo do Processo no SEI (<span id="detTotalDocsContador">0</span> documentos)
+            </span>
+            <input type="text" id="filtroDocsSei" oninput="filtrarDocsAcervo(this.value)" placeholder="Buscar no acervo..." class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200 w-36 sm:w-48">
+          </div>
+          <div class="max-h-44 overflow-y-auto custom-scrollbar p-2 divide-y divide-slate-800/60" id="listaAcervoSei">
+            <!-- Documentos injetados dinamicamente -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rodapé com Ações -->
+      <div class="p-4 border-t border-slate-800 bg-slate-950/80 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="irParaCalculadoraDoProcesso()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/30 transition flex items-center gap-1">
+            ⏱️ Prazos 14.133
+          </button>
+          <button type="button" onclick="irParaMinutaDoProcesso()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/30 transition flex items-center gap-1">
+            📋 Certidão SEI
+          </button>
+          <button type="button" onclick="excluirProcessoAtual()" class="px-2.5 py-1.5 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition">
+            Excluir
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="fecharModalDetalhes()" class="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-white transition">Fechar</button>
+          <button type="button" onclick="salvarAlteracoesProcesso()" class="px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-lg shadow-emerald-600/20 transition">Salvar Alterações</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- RODAPÉ EXECUTIVO -->
   <footer class="border-t border-slate-900 bg-slate-950 py-4 text-center text-xs text-slate-600">
     <p>LicitFlow 14.133 • PWA Instalável e Autônomo • Desenvolvido para a Coordenação de Licitações (CBMBA)</p>
@@ -600,6 +727,17 @@
         salvar();
       }
 
+      // Garante integridade do Pregoeiro
+      processos.forEach(p => {
+        if (p.numeroProcesso && p.numeroProcesso.includes('36318')) {
+          p.pregoeiro = 'Renato Carvalho';
+          p.agentePrincipal = 'Renato Carvalho';
+        }
+        if (!p.pregoeiro && p.agentePrincipal) {
+          p.pregoeiro = p.agentePrincipal;
+        }
+      });
+
       verificarPayloadUrl();
       configurarOuvinteMensagens();
       renderizarTudo();
@@ -707,6 +845,7 @@
           p.numeroProcesso.toLowerCase().includes(termo) ||
           p.objeto.toLowerCase().includes(termo) ||
           (p.agentePrincipal && p.agentePrincipal.toLowerCase().includes(termo)) ||
+          (p.pregoeiro && p.pregoeiro.toLowerCase().includes(termo)) ||
           (p.edital && p.edital.toLowerCase().includes(termo));
 
         if (!bateFiltro) return;
@@ -714,56 +853,96 @@
         const estagio = p.estagio || 1;
         contagem[estagio] = (contagem[estagio] || 0) + 1;
 
+        // Análise dos 6 artefatos estatutários da Lei 14.133 (Checklist Executivo)
+        const artes = p.artefatos || [];
+        const temDFD = artes.some(a => a.categoria === 'DFD');
+        const temETP = artes.some(a => a.categoria === 'ETP');
+        const temTR = artes.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Projeto Básico');
+        const temPesquisa = artes.some(a => a.categoria === 'Pesquisa de Preços');
+        const temPGE = artes.some(a => a.categoria === 'Parecer Jurídico');
+        const temEdital = artes.some(a => a.categoria === 'Edital');
+
         const card = document.createElement('div');
-        card.className = "bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 space-y-2.5 shadow hover:border-slate-700 transition cursor-pointer";
-        card.onclick = () => selecionarProcesso(p.id);
+        card.className = "bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 space-y-2.5 shadow-md hover:border-slate-700 transition cursor-pointer relative group";
+        card.onclick = () => abrirModalDetalhes(p.id);
 
-        // Tags do card
-        let tagsHtml = '';
-        if (p.artefatos) {
-          p.artefatos.forEach(art => {
-            const cor = art.assinado ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700';
-            tagsHtml += `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded border ${cor}">${art.categoria || art.nome}</span>`;
-          });
-        }
-
-        // Alerta de prazo
+        // Alerta de prazo de abertura
         let badgePrazo = '';
         if (p.estagio === 4 && p.dataAbertura) {
           const d = new Date(p.dataAbertura);
           badgePrazo = `
-            <div class="flex items-center gap-1 text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Sessão: ${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            <div class="flex items-center gap-1.5 text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Sessão: ${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           `;
         }
 
+        const pregoeiroExibicao = p.pregoeiro || p.agentePrincipal || 'Não designado';
+
         card.innerHTML = `
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold text-indigo-400 font-mono-num">${p.edital || 'PROCESSO'}</span>
-            <span class="text-[10px] text-slate-400 font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${p.modalidade}</span>
+            <span class="text-[10px] text-slate-400 font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800">${p.modalidade || 'Pregão'}</span>
           </div>
 
-          <div class="text-xs font-semibold text-slate-200 line-clamp-2">${p.objeto}</div>
-
-          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-900">
-            <span class="font-mono-num text-[11px] text-slate-300 font-medium">${p.numeroProcesso}</span>
-            <span class="font-mono-num text-emerald-400 font-bold">${(p.valorEstimado || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+          <div class="text-xs font-semibold text-slate-200 line-clamp-2 leading-snug" title="${p.objeto}">
+            ${p.objeto}
           </div>
 
-          <div class="flex flex-wrap gap-1 pt-1">
-            ${tagsHtml}
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-900 font-mono-num">
+            <span class="text-slate-300 font-medium">${p.numeroProcesso}</span>
+            <span class="text-emerald-400 font-bold">${(p.valorEstimado && p.valorEstimado > 0) ? (p.valorEstimado).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'Em Cotação'}</span>
+          </div>
+
+          <!-- Matriz Executiva dos 6 Pilares da Lei 14.133 -->
+          <div class="grid grid-cols-6 gap-1 pt-0.5">
+            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temDFD ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temDFD ? 'DFD Presente' : 'DFD Pendente'}">
+              ${temDFD ? '✓' : '○'} DFD
+            </span>
+            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temETP ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temETP ? 'ETP Presente' : 'ETP Pendente'}">
+              ${temETP ? '✓' : '○'} ETP
+            </span>
+            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temTR ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temTR ? 'TR / Projeto Básico Presente' : 'TR Pendente'}">
+              ${temTR ? '✓' : '○'} TR
+            </span>
+            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temPesquisa ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temPesquisa ? 'Pesquisa de Preços Anexada' : 'Pesquisa Pendente'}">
+              ${temPesquisa ? '✓' : '○'} Pesq
+            </span>
+            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temPGE ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temPGE ? 'Parecer PGE Emitido' : 'Parecer PGE Pendente'}">
+              ${temPGE ? '✓' : '○'} PGE
+            </span>
+            <span class="text-center text-[9px] font-bold py-0.5 px-0.5 rounded ${temEdital ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30' : 'bg-slate-900/60 text-slate-600 border border-slate-800/80'}" title="${temEdital ? 'Edital Publicado' : 'Edital Pendente'}">
+              ${temEdital ? '✓' : '○'} Edital
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] text-slate-400 px-0.5">
+            <span class="flex items-center gap-1 text-slate-400">
+              <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+              ${artes.length} artefatos no SEI
+            </span>
+            <span class="text-[10px] text-indigo-400 group-hover:text-indigo-300 font-medium">Acervo ➔</span>
           </div>
 
           ${badgePrazo}
 
-          <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-            <span class="flex items-center gap-1 font-semibold text-slate-300">
-              <svg class="w-3 h-3 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
-              ${p.agentePrincipal || 'Não designado'}
-            </span>
-            <span class="text-[10px] text-slate-500 hover:text-indigo-300">Detalhes ➔</span>
+          <!-- Responsável / Pregoeiro em Destaque -->
+          <div class="flex items-center justify-between pt-2 border-t border-slate-900 text-xs">
+            <div class="flex items-center gap-1.5" title="Pregoeiro / Agente de Contratação Designado">
+              <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold text-[10px]">
+                🎯
+              </span>
+              <div class="flex flex-col">
+                <span class="text-[9px] text-slate-500 font-medium uppercase tracking-wider">Pregoeiro:</span>
+                <span class="text-[11px] font-bold text-slate-200 truncate max-w-[150px]">
+                  ${pregoeiroExibicao}
+                </span>
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); abrirModalDetalhes('${p.id}')" class="px-2.5 py-1 text-[10px] font-semibold rounded bg-slate-900 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 border border-slate-800 transition">
+              Abrir 360° ➔
+            </button>
           </div>
         `;
 
@@ -781,7 +960,7 @@
       const mapaAgentes = {};
 
       processos.forEach(p => {
-        const ag = p.agentePrincipal || 'Não Atribuído';
+        const ag = p.pregoeiro || p.agentePrincipal || 'Não Atribuído';
         if (!mapaAgentes[ag]) {
           mapaAgentes[ag] = { processos: [], valorTotal: 0, concluidos: 0, emDisputa: 0 };
         }
@@ -1029,7 +1208,7 @@
             </table>
 
             <p>Certifico ainda que a contagem dos prazos observou a exclusão do primeiro dia e a inclusão do dia do vencimento, considerando exclusivamente os dias de expediente administrativo no Estado da Bahia.</p>
-            <p style="margin-top: 15px;">Encaminhe-se ao <strong>Pregoeiro Oficial (${proc.agentePrincipal})</strong> para a condução do certame.</p>
+            <p style="margin-top: 15px;">Encaminhe-se ao <strong>Pregoeiro Oficial (${proc.pregoeiro || proc.agentePrincipal})</strong> para a condução do certame.</p>
 
             <div style="margin-top: 40px; text-align: center; font-size: 12px;">
               <p>Salvador/BA, ${new Date().toLocaleDateString('pt-BR')}.</p>
@@ -1072,7 +1251,7 @@
             <p style="font-size: 12px; font-weight: bold; margin-top: 5px;">Processo SEI nº ${proc.numeroProcesso}</p>
           </div>
           <div style="font-size: 13px; line-height: 1.7; text-align: justify;">
-            <p>1. Designo o <strong>${proc.agentePrincipal}</strong> como Agente de Contratação / Pregoeiro Oficial responsável pela condução da presente sessão pública.</p>
+            <p>1. Designo o <strong>${proc.pregoeiro || proc.agentePrincipal}</strong> como Agente de Contratação / Pregoeiro Oficial responsável pela condução da presente sessão pública.</p>
             <p>2. Fica designada a Equipe de Apoio para assessoramento nos atos de julgamento e habilitação.</p>
           </div>
         `;
@@ -1125,12 +1304,215 @@
       renderizarFunil();
     }
 
+    let processoDetalhesAtual = null;
+
     function selecionarProcesso(id) {
+      abrirModalDetalhes(id);
+    }
+
+    function abrirModalDetalhes(id) {
       const proc = processos.find(p => p.id === id);
       if (!proc) return;
+      processoDetalhesAtual = proc;
+
+      document.getElementById('detNumeroProcesso').innerText = proc.numeroProcesso || '';
+      document.getElementById('detModalidade').innerText = proc.modalidade || 'Pregão Eletrônico';
+      document.getElementById('detEditalTitulo').innerText = proc.edital ? `${proc.edital} • ${proc.numeroProcesso}` : proc.numeroProcesso;
+      document.getElementById('detObjeto').value = proc.objeto || '';
+      document.getElementById('detValorEstimado').value = proc.valorEstimado || 0;
+      document.getElementById('detSelModalidade').value = proc.modalidade || 'Pregão Eletrônico';
+      document.getElementById('detSelEstagio').value = proc.estagio || 1;
+
+      // Pregoeiro
+      const pregoeiroNome = proc.pregoeiro || proc.agentePrincipal || '';
+      document.getElementById('detPregoeiroNome').value = pregoeiroNome;
+
+      // Popula select de agentes detectados
+      const selAg = document.getElementById('selDetAgente');
+      selAg.innerHTML = '<option value="">-- Escolher agente detectado no SEI --</option>';
+      
+      const todosAgentes = Array.from(new Set([
+        'Renato Carvalho',
+        ...(proc.agentes || []),
+        ...(proc.equipeApoio || [])
+      ])).filter(Boolean);
+
+      todosAgentes.forEach(ag => {
+        const opt = document.createElement('option');
+        opt.value = ag;
+        opt.innerText = ag === 'Renato Carvalho' ? '⭐ Renato Carvalho (Você)' : ag;
+        if (ag === pregoeiroNome) opt.selected = true;
+        selAg.appendChild(opt);
+      });
+
+      // Chips da equipe de apoio
+      const chipsContainer = document.getElementById('chipsEquipeApoio');
+      chipsContainer.innerHTML = '';
+      const outrosAgentes = todosAgentes.filter(a => a !== pregoeiroNome);
+      if (outrosAgentes.length > 0) {
+        outrosAgentes.forEach(ag => {
+          const span = document.createElement('span');
+          span.className = "px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-slate-300 text-[10px] cursor-pointer hover:border-amber-400";
+          span.title = "Clique para definir como pregoeiro";
+          span.innerText = ag;
+          span.onclick = () => {
+            document.getElementById('detPregoeiroNome').value = ag;
+            selAg.value = ag;
+          };
+          chipsContainer.appendChild(span);
+        });
+      } else {
+        chipsContainer.innerHTML = '<span class="text-slate-500 italic text-[10px]">Nenhum outro agente nas assinaturas</span>';
+      }
+
+      // Checklist Estatutário dos pilares da 14.133
+      const gridCheck = document.getElementById('gridChecklistDetalhes');
+      gridCheck.innerHTML = '';
+      const artes = proc.artefatos || [];
+      const pilares = [
+        { key: 'DFD', label: '1. DFD', presente: artes.some(a => a.categoria === 'DFD') },
+        { key: 'ETP', label: '2. ETP', presente: artes.some(a => a.categoria === 'ETP') },
+        { key: 'Matriz de Risco', label: '3. Riscos', presente: artes.some(a => a.categoria === 'Matriz de Risco') },
+        { key: 'TR', label: '4. TR / PB', presente: artes.some(a => a.categoria === 'Termo de Referência' || a.categoria === 'Projeto Básico') },
+        { key: 'Pesquisa', label: '5. Pesq. Preços', presente: artes.some(a => a.categoria === 'Pesquisa de Preços') },
+        { key: 'PGE', label: '6. Parecer PGE', presente: artes.some(a => a.categoria === 'Parecer Jurídico') },
+        { key: 'Edital', label: '7. Edital / Aviso', presente: artes.some(a => a.categoria === 'Edital') }
+      ];
+
+      pilares.forEach(pil => {
+        const div = document.createElement('div');
+        div.className = `p-2 rounded-lg border text-xs flex items-center justify-between ${pil.presente ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-500'}`;
+        div.innerHTML = `
+          <span class="font-semibold">${pil.label}</span>
+          <span class="font-bold text-[11px]">${pil.presente ? '✓ Localizado' : '○ Pendente'}</span>
+        `;
+        gridCheck.appendChild(div);
+      });
+
+      // Acervo completo da árvore SEI
+      renderizarAcervoDocs(proc.artefatos || []);
+
+      document.getElementById('modalDetalhes').classList.remove('hidden');
+    }
+
+    function renderizarAcervoDocs(artefatos, filtro = '') {
+      const container = document.getElementById('listaAcervoSei');
+      document.getElementById('detTotalDocsContador').innerText = artefatos ? artefatos.length : 0;
+      container.innerHTML = '';
+
+      if (!artefatos || artefatos.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 italic text-[11px] p-3 text-center">Nenhum documento detectado na árvore do SEI ainda.</p>';
+        return;
+      }
+
+      const filtrados = filtro 
+        ? artefatos.filter(a => a.nome.toLowerCase().includes(filtro.toLowerCase()) || (a.categoria && a.categoria.toLowerCase().includes(filtro.toLowerCase())))
+        : artefatos;
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<p class="text-slate-500 italic text-[11px] p-2 text-center">Nenhum documento bate com a busca.</p>';
+        return;
+      }
+
+      filtrados.forEach((art, idx) => {
+        const item = document.createElement('div');
+        item.className = "py-1.5 px-2 flex items-center justify-between gap-2 text-[11px] hover:bg-slate-900/60 rounded transition";
+        item.innerHTML = `
+          <div class="flex items-center gap-2 truncate">
+            <span class="text-slate-500 font-mono text-[10px] w-5 text-right">${idx + 1}.</span>
+            <span class="font-medium text-slate-200 truncate" title="${art.nome}">${art.nome}</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${art.assinado ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-slate-900 text-slate-400 border border-slate-800'}">
+              ${art.categoria || 'Geral'}
+            </span>
+            ${art.assinado ? '<span title="Assinado eletronicamente" class="text-emerald-400 text-xs">✍</span>' : ''}
+            ${art.externo ? '<span title="Documento Externo" class="text-sky-400 text-[10px]">EXT</span>' : ''}
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function filtrarDocsAcervo(val) {
+      if (!processoDetalhesAtual) return;
+      renderizarAcervoDocs(processoDetalhesAtual.artefatos || [], val);
+    }
+
+    function fecharModalDetalhes() {
+      document.getElementById('modalDetalhes').classList.add('hidden');
+      processoDetalhesAtual = null;
+    }
+
+    function atribuirAMim() {
+      document.getElementById('detPregoeiroNome').value = 'Renato Carvalho';
+      const selAg = document.getElementById('selDetAgente');
+      if (selAg) selAg.value = 'Renato Carvalho';
+      mostrarToast('Pregoeiro definido como Renato Carvalho!');
+    }
+
+    function selecionarAgenteDropdown(val) {
+      if (val) {
+        document.getElementById('detPregoeiroNome').value = val;
+      }
+    }
+
+    function salvarAlteracoesProcesso() {
+      if (!processoDetalhesAtual) return;
+
+      const pregoeiro = document.getElementById('detPregoeiroNome').value.trim() || 'Renato Carvalho';
+      const objeto = document.getElementById('detObjeto').value.trim();
+      const valor = parseFloat(document.getElementById('detValorEstimado').value) || 0;
+      const modalidade = document.getElementById('detSelModalidade').value;
+      const estagio = parseInt(document.getElementById('detSelEstagio').value, 10) || 1;
+
+      processoDetalhesAtual.pregoeiro = pregoeiro;
+      processoDetalhesAtual.agentePrincipal = pregoeiro;
+      if (objeto) processoDetalhesAtual.objeto = objeto;
+      processoDetalhesAtual.valorEstimado = valor;
+      processoDetalhesAtual.modalidade = modalidade;
+      processoDetalhesAtual.estagio = estagio;
+
+      salvar();
+      renderizarTudo();
+      fecharModalDetalhes();
+      mostrarToast(`✓ Processo atualizado! Pregoeiro: ${pregoeiro}`);
+    }
+
+    function irParaCalculadoraDoProcesso() {
+      if (!processoDetalhesAtual) return;
+      const id = processoDetalhesAtual.id;
+      fecharModalDetalhes();
       mudarAba('prazos');
-      document.getElementById('selCalcProcesso').value = proc.id;
+      document.getElementById('selCalcProcesso').value = id;
       carregarProcessoNaCalculadora();
+    }
+
+    function irParaMinutaDoProcesso() {
+      if (!processoDetalhesAtual) return;
+      const id = processoDetalhesAtual.id;
+      fecharModalDetalhes();
+      mudarAba('certidao');
+      document.getElementById('selCertProcesso').value = id;
+      gerarMinutaSEI();
+    }
+
+    function excluirProcessoAtual() {
+      if (!processoDetalhesAtual) return;
+      if (confirm(`Tem certeza que deseja remover o processo ${processoDetalhesAtual.numeroProcesso} do painel?`)) {
+        processos = processos.filter(p => p.id !== processoDetalhesAtual.id);
+        salvar();
+        renderizarTudo();
+        fecharModalDetalhes();
+        mostrarToast('Processo removido com sucesso.');
+      }
+    }
+
+    function copiarTexto(texto) {
+      if (!texto) return;
+      navigator.clipboard.writeText(texto).then(() => {
+        mostrarToast('✓ Copiado para a área de transferência!');
+      });
     }
 
     // MODAL DE IMPORTAÇÃO
@@ -1178,20 +1560,51 @@
       }
 
       const indexExistente = processos.findIndex(p => p.numeroProcesso === payload.numeroProcesso);
+      const existente = indexExistente >= 0 ? processos[indexExistente] : null;
+
+      // Determinação inteligente do Pregoeiro
+      let pregoeiroDefinido = payload.pregoeiro;
       
+      // Se for o processo informado pelo usuário ou se o usuário logado for Renato Carvalho
+      if (payload.numeroProcesso.includes('36318') || (payload.usuarioLogado && payload.usuarioLogado.toUpperCase().includes('RENATO'))) {
+        pregoeiroDefinido = 'Renato Carvalho';
+      }
+
+      if (!pregoeiroDefinido && existente && existente.pregoeiro) {
+        pregoeiroDefinido = existente.pregoeiro;
+      }
+      if (!pregoeiroDefinido && payload.agentes) {
+        const renato = payload.agentes.find(a => a.toUpperCase().includes('RENATO') || a.toUpperCase().includes('CARVALHO'));
+        if (renato) pregoeiroDefinido = renato;
+      }
+      if (!pregoeiroDefinido && existente && existente.agentePrincipal) {
+        pregoeiroDefinido = existente.agentePrincipal;
+      }
+      if (!pregoeiroDefinido && payload.agentes && payload.agentes.length > 0) {
+        pregoeiroDefinido = payload.agentes[0];
+      }
+      if (!pregoeiroDefinido) {
+        pregoeiroDefinido = 'Renato Carvalho';
+      }
+
+      const valorEstimadoFinal = (payload.valorEstimado && payload.valorEstimado > 0)
+        ? payload.valorEstimado
+        : (existente ? existente.valorEstimado : 0);
+
       const novoOuAtualizado = {
-        id: indexExistente >= 0 ? processos[indexExistente].id : Date.now().toString(),
+        id: existente ? existente.id : Date.now().toString(),
         numeroProcesso: payload.numeroProcesso,
-        edital: payload.edital || (payload.numeroProcesso.includes('.') ? `SEI ${payload.numeroProcesso.split('.')[0]}` : 'PROCESSO'),
-        objeto: payload.objeto || (indexExistente >= 0 ? processos[indexExistente].objeto : 'Demanda extraída do SEI! Bahia'),
-        modalidade: indexExistente >= 0 ? processos[indexExistente].modalidade : 'Pregão Eletrônico',
-        estagio: determinarEstagioPelosArtefatos(payload.artefatos),
-        agentePrincipal: (payload.agentes && payload.agentes.length > 0) ? payload.agentes[0] : (indexExistente >= 0 ? processos[indexExistente].agentePrincipal : 'Agente em Identificação'),
-        equipeApoio: payload.agentes || [],
-        valorEstimado: indexExistente >= 0 ? processos[indexExistente].valorEstimado : 0,
-        dataPublicacao: indexExistente >= 0 ? processos[indexExistente].dataPublicacao : '',
-        dataAbertura: indexExistente >= 0 ? processos[indexExistente].dataAbertura : '',
-        artefatos: payload.artefatos || [],
+        edital: payload.edital || (existente ? existente.edital : (payload.numeroProcesso.includes('.') ? `SEI ${payload.numeroProcesso.split('.')[0]}` : 'PROCESSO')),
+        objeto: (payload.objeto && payload.objeto.length > 15) ? payload.objeto : (existente ? existente.objeto : (payload.objeto || 'Demanda extraída do SEI! Bahia')),
+        modalidade: existente ? existente.modalidade : (payload.modalidade || 'Pregão Eletrônico'),
+        estagio: existente ? existente.estagio : determinarEstagioPelosArtefatos(payload.artefatos),
+        pregoeiro: pregoeiroDefinido,
+        agentePrincipal: pregoeiroDefinido,
+        equipeApoio: (payload.equipeApoio && payload.equipeApoio.length > 0) ? payload.equipeApoio : (payload.agentes || (existente ? existente.equipeApoio : [])),
+        valorEstimado: valorEstimadoFinal,
+        dataPublicacao: existente ? existente.dataPublicacao : '',
+        dataAbertura: payload.dataAbertura || (existente ? existente.dataAbertura : ''),
+        artefatos: (payload.artefatos && payload.artefatos.length > 0) ? payload.artefatos : (existente ? existente.artefatos : []),
         isExemplo: false,
         pncpSync: false
       };
@@ -1204,7 +1617,7 @@
 
       salvar();
       renderizarTudo();
-      mostrarToast(`✓ Processo REAL nº ${payload.numeroProcesso} recebido e sincronizado com o PluginNato!`);
+      mostrarToast(`✓ Processo nº ${payload.numeroProcesso} sincronizado (Pregoeiro: ${pregoeiroDefinido})`);
     }
 
     function limparDadosExemplo() {

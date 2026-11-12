@@ -107,7 +107,7 @@
       <!-- Indicador PluginNato e Ações Rápidas -->
       <div class="flex items-center gap-2 sm:gap-3">
         <!-- Indicador PluginNato -->
-        <div id="pluginNatoStatus" class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium cursor-pointer" title="Ouvindo transmissões em segundo plano da extensão PluginNato">
+        <div id="pluginNatoStatus" onclick="pedirSincronizacaoExtensao()" class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium cursor-pointer transition hover:bg-emerald-500/20" title="Clique para buscar processos recentes capturados pelo PluginNato">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span class="hidden md:inline">PluginNato Conectado</span>
           <span class="md:hidden">Ao Vivo</span>
@@ -232,6 +232,9 @@
 
     <!-- ABA 1: FUNIL 360° (KANBAN DINÂMICO) -->
     <div id="aba-funil" class="space-y-4">
+      <!-- Banner Dinâmico de Dados Reais vs Demonstração -->
+      <div id="bannerStatusDados" class="rounded-xl p-3 text-xs border flex items-center justify-between transition"></div>
+
       <div class="flex items-center justify-between text-xs text-slate-400">
         <span>Arraste ou visualize a progressão dos processos licitatórios do CBMBA</span>
         <div class="flex items-center gap-2">
@@ -493,7 +496,7 @@
     // ESTADO GLOBAL DA APLICAÇÃO
     const STORAGE_KEY = 'licitflow_processos_v1';
 
-    // DADOS INICIAIS BASEADOS NA ROTINA DO CBMBA
+    // DADOS DE DEMONSTRAÇÃO
     const DADOS_EXEMPLO = [
       {
         id: '1',
@@ -515,6 +518,7 @@
           { nome: 'Parecer PGE nº 412/2026', categoria: 'Parecer Jurídico', assinado: true },
           { nome: 'Edital PE007/2025 Publicado', categoria: 'Edital', assinado: true }
         ],
+        isExemplo: true,
         pncpSync: true
       },
       {
@@ -534,6 +538,7 @@
           { nome: 'ETP - Frotas Operacionais', categoria: 'ETP', assinado: true },
           { nome: 'Mapa Comparativo de Preços', categoria: 'Pesquisa de Preços', assinado: false }
         ],
+        isExemplo: true,
         pncpSync: false
       },
       {
@@ -552,6 +557,7 @@
           { nome: 'DFD - Reparo de Equipamentos', categoria: 'DFD', assinado: true },
           { nome: 'Estudo Técnico Simplificado', categoria: 'ETP', assinado: false }
         ],
+        isExemplo: true,
         pncpSync: false
       },
       {
@@ -573,6 +579,7 @@
           { nome: 'Parecer Jurídico PGE nº 882/2026', categoria: 'Parecer Jurídico', assinado: true },
           { nome: 'Edital Concorrência 001/2026', categoria: 'Edital', assinado: true }
         ],
+        isExemplo: true,
         pncpSync: true
       }
     ];
@@ -638,6 +645,56 @@
 
     // 2. RENDERIZAR FUNIL KANBAN
     function renderizarFunil() {
+      // Atualiza Banner de Status dos Dados
+      const banner = document.getElementById('bannerStatusDados');
+      if (banner) {
+        const temExemplo = processos.some(p => p.isExemplo);
+        const temReal = processos.some(p => !p.isExemplo);
+
+        if (temExemplo && !temReal) {
+          banner.className = "rounded-xl p-3 text-xs border border-amber-500/30 bg-amber-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2";
+          banner.innerHTML = `
+            <div class="flex items-center gap-2 text-amber-200">
+              <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span><strong>Atenção:</strong> Estes 4 processos abaixo são fictícios de demonstração. Assim que você abrir um processo no <strong>SEI! Bahia</strong> com o <strong>PluginNato</strong>, seus dados reais entrarão aqui.</span>
+            </div>
+            <button onclick="limparDadosExemplo()" class="px-2.5 py-1 text-xs font-semibold rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 border border-amber-500/40 transition shrink-0">
+              🗑️ Limpar dados fictícios
+            </button>
+          `;
+        } else if (processos.length === 0) {
+          banner.className = "rounded-xl p-4 text-xs border border-indigo-500/30 bg-indigo-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3";
+          banner.innerHTML = `
+            <div class="flex items-center gap-3 text-indigo-200">
+              <span class="w-3 h-3 rounded-full bg-indigo-400 animate-pulse shrink-0"></span>
+              <div>
+                <p class="font-bold text-white text-xs">Aguardando dados reais do SEI! Bahia...</p>
+                <p class="text-slate-300 text-[11px] mt-0.5">O painel está limpo. Abra qualquer processo no seu <strong>SEI! Bahia</strong> (com o PluginNato ativo) ou clique em "Importar do SEI" para sincronizar.</p>
+              </div>
+            </div>
+            <button onclick="carregarDemonstracao()" class="px-2.5 py-1 text-xs font-semibold rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0">
+              🧪 Ver dados de exemplo
+            </button>
+          `;
+        } else {
+          banner.className = "rounded-xl p-3 text-xs border border-emerald-500/30 bg-emerald-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2";
+          banner.innerHTML = `
+            <div class="flex items-center gap-2 text-emerald-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+              <span><strong>Processos Reais Conectados:</strong> Exibindo ${processos.filter(p => !p.isExemplo).length} processo(s) reais recebidos diretamente do seu SEI! Bahia.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="pedirSincronizacaoExtensao()" class="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-100 border border-emerald-500/40 transition">
+                ↻ Forçar Atualização
+              </button>
+              <button onclick="limparTudo()" class="text-[11px] text-slate-400 hover:text-rose-400 underline ml-1">
+                Limpar Base
+              </button>
+            </div>
+          `;
+        }
+      }
+
       for (let i = 1; i <= 4; i++) {
         document.getElementById(`coluna-${i}`).innerHTML = '';
       }
@@ -1111,25 +1168,31 @@
       }
     }
 
-    // INTEGRAÇÃO COM PLUGINNATO (REALTIME & URL)
+    // INTEGRAÇÃO COM PLUGINNATO (REALTIME, STORAGE & URL)
     function importarProcesso(payload) {
       if (!payload || !payload.numeroProcesso) return;
+
+      // Se a lista só continha dados fictícios de demonstração, limpa imediatamente para dar lugar aos dados reais
+      if (processos.length > 0 && processos.every(p => p.isExemplo)) {
+        processos = [];
+      }
 
       const indexExistente = processos.findIndex(p => p.numeroProcesso === payload.numeroProcesso);
       
       const novoOuAtualizado = {
         id: indexExistente >= 0 ? processos[indexExistente].id : Date.now().toString(),
         numeroProcesso: payload.numeroProcesso,
-        edital: payload.numeroProcesso.includes('.') ? `SEI ${payload.numeroProcesso.split('.')[0]}` : 'PROCESSO',
-        objeto: payload.objeto || (indexExistente >= 0 ? processos[indexExistente].objeto : 'Demanda importada via PluginNato'),
-        modalidade: 'Pregão Eletrônico',
+        edital: payload.edital || (payload.numeroProcesso.includes('.') ? `SEI ${payload.numeroProcesso.split('.')[0]}` : 'PROCESSO'),
+        objeto: payload.objeto || (indexExistente >= 0 ? processos[indexExistente].objeto : 'Demanda extraída do SEI! Bahia'),
+        modalidade: indexExistente >= 0 ? processos[indexExistente].modalidade : 'Pregão Eletrônico',
         estagio: determinarEstagioPelosArtefatos(payload.artefatos),
-        agentePrincipal: (payload.agentes && payload.agentes.length > 0) ? payload.agentes[0] : 'SGT PM GUILHERME',
+        agentePrincipal: (payload.agentes && payload.agentes.length > 0) ? payload.agentes[0] : (indexExistente >= 0 ? processos[indexExistente].agentePrincipal : 'Agente em Identificação'),
         equipeApoio: payload.agentes || [],
-        valorEstimado: indexExistente >= 0 ? processos[indexExistente].valorEstimado : 350000.00,
-        dataPublicacao: indexExistente >= 0 ? processos[indexExistente].dataPublicacao : '2026-11-12',
-        dataAbertura: indexExistente >= 0 ? processos[indexExistente].dataAbertura : '2026-11-28T09:30',
+        valorEstimado: indexExistente >= 0 ? processos[indexExistente].valorEstimado : 0,
+        dataPublicacao: indexExistente >= 0 ? processos[indexExistente].dataPublicacao : '',
+        dataAbertura: indexExistente >= 0 ? processos[indexExistente].dataAbertura : '',
         artefatos: payload.artefatos || [],
+        isExemplo: false,
         pncpSync: false
       };
 
@@ -1141,7 +1204,34 @@
 
       salvar();
       renderizarTudo();
-      mostrarToast(`✓ Processo nº ${payload.numeroProcesso} recebido e sincronizado com o PluginNato!`);
+      mostrarToast(`✓ Processo REAL nº ${payload.numeroProcesso} recebido e sincronizado com o PluginNato!`);
+    }
+
+    function limparDadosExemplo() {
+      processos = processos.filter(p => !p.isExemplo);
+      salvar();
+      renderizarTudo();
+      mostrarToast('Dados fictícios removidos com sucesso!');
+    }
+
+    function carregarDemonstracao() {
+      processos = [...DADOS_EXEMPLO];
+      salvar();
+      renderizarTudo();
+      mostrarToast('Dados de demonstração carregados.');
+    }
+
+    function limparTudo() {
+      if (confirm('Deseja limpar todos os processos armazenados no painel?')) {
+        processos = [];
+        salvar();
+        renderizarTudo();
+      }
+    }
+
+    function pedirSincronizacaoExtensao() {
+      window.postMessage({ tipo: 'PEDIR_DADOS_PLUGINNATO' }, '*');
+      mostrarToast('Solicitando processos mais recentes ao PluginNato...');
     }
 
     function determinarEstagioPelosArtefatos(artefatos) {
@@ -1173,11 +1263,44 @@
     }
 
     function configurarOuvinteMensagens() {
-      // Ouve mensagens vindas da extensão PluginNato
+      // Ouve mensagens vindas da extensão PluginNato (via bridge ou postMessage)
       window.addEventListener('message', (event) => {
-        if (event.data && event.data.tipo === 'PLUGINDATA_UPDATE') {
+        if (!event.data) return;
+
+        if (event.data.tipo === 'PLUGINNATO_DISPONIVEL') {
+          const el = document.getElementById('pluginNatoStatus');
+          if (el) {
+            el.className = "flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold shadow-sm shadow-emerald-500/20";
+            el.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span><span>PluginNato Conectado (v${event.data.versao})</span>`;
+          }
+        }
+
+        if (event.data.tipo === 'PLUGINDATA_UPDATE') {
           importarProcesso(event.data.payload);
         }
+
+        if (event.data.tipo === 'PLUGINDATA_HISTORICO_COMPLETO') {
+          importarHistoricoCompleto(event.data.payload);
+        }
+      });
+
+      // Solicita dados imediatamente ao carregar
+      setTimeout(() => {
+        window.postMessage({ tipo: 'PEDIR_DADOS_PLUGINNATO' }, '*');
+      }, 400);
+    }
+
+    function importarHistoricoCompleto(historico) {
+      if (!historico || typeof historico !== 'object') return;
+      const lista = Object.values(historico);
+      if (lista.length === 0) return;
+
+      if (processos.length > 0 && processos.every(p => p.isExemplo)) {
+        processos = [];
+      }
+
+      lista.forEach(p => {
+        importarProcesso(p);
       });
     }
 
